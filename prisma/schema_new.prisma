@@ -1,0 +1,180 @@
+// Job Application Tracker Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Core Models
+
+model Company {
+  id          String        @id @default(cuid())
+  name        String
+  website     String?
+  careersUrl  String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  applications Application[]
+  contacts     Contact[]
+
+  @@index([name])
+}
+
+model Application {
+  id              String            @id @default(cuid())
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  positionTitle   String
+  description     String?
+  jobPostingUrl   String?
+
+  status          String @default(NOT_APPLIED)
+  appliedDate     DateTime?
+
+  salaryMin       Int?
+  salaryMax       Int?
+  salaryCurrency  String?           @default("USD")
+
+  resumePath      String            // Required
+  coverLetterPath String?           // Optional
+
+  isReferred      Boolean           @default(false)
+  referredBy      String?           // Contact ID or name
+  referredById    String?
+  referredByContact Contact?        @relation("ReferredApplications", fields: [referredById], references: [id])
+
+  applicationDeadline DateTime?
+  notes           String?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  interviews      Interview[]
+  reminders       Reminder[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([appliedDate])
+}
+
+model Contact {
+  id              String         @id @default(cuid())
+  name            String
+  linkedinUrl     String?
+  email           String?
+  phone           String?
+
+  companyId       String
+  company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  position        String?
+  status          String  @default(REQUEST_SENT)
+
+  canRefer        Boolean        @default(false)
+  willingToRefer  Boolean        @default(false)
+
+  initialContactDate DateTime    @default(now())
+  lastInteractionDate DateTime?
+
+  notes           String?
+  conversationNotes String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  referredApplications Application[] @relation("ReferredApplications")
+  interactions    Interaction[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([canRefer])
+}
+
+model Interaction {
+  id          String   @id @default(cuid())
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  type        String
+  notes       String?
+  interactionDate DateTime @default(now())
+
+  createdAt   DateTime @default(now())
+
+  @@index([contactId])
+  @@index([interactionDate])
+}
+
+model Interview {
+  id              String         @id @default(cuid())
+  applicationId   String
+  application     Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  round           Int            // 1, 2, 3, etc.
+  title           String         // "Phone Screen", "Technical Round", "HR Round"
+  interviewDate   DateTime
+  duration        Int?           // in minutes
+
+  interviewers    String?        // Comma-separated or JSON
+  location        String?        // "Zoom", "Google Meet", "In-person"
+  meetingLink     String?
+
+  status          String @default(SCHEDULED)
+  feedback        String?
+  notes           String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([applicationId])
+  @@index([interviewDate])
+}
+
+model Reminder {
+  id              String         @id @default(cuid())
+  applicationId   String?
+  application     Application?   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  title           String
+  description     String?
+  dueDate         DateTime
+
+  isCompleted     Boolean        @default(false)
+  completedAt     DateTime?
+
+  type            String   @default(FOLLOW_UP)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([dueDate])
+  @@index([isCompleted])
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  body        String
+  category    String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+// Enums
+
+enum String {
+  NOT_APPLIED
+  APPLIED
+  IN_REVIEW
+  INTERVIEW_SCHEDULED
