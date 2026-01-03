@@ -20,6 +20,7 @@ const TEMPLATE_CATEGORIES = [
   'THANK_YOU',
   'REFERRAL_REQUEST',
   'COLD_OUTREACH',
+  'COVER_LETTER'
   'OTHER',
 ]
 
@@ -28,6 +29,7 @@ const categoryConfig: Record<string, { label: string; gradient: string; textColo
   FOLLOW_UP: { label: 'Follow Up', gradient: 'from-amber-500 to-orange-600', textColor: 'text-amber-300' },
   THANK_YOU: { label: 'Thank You', gradient: 'from-emerald-500 to-emerald-700', textColor: 'text-emerald-300' },
   REFERRAL_REQUEST: { label: 'Referral', gradient: 'from-purple-500 to-purple-700', textColor: 'text-purple-300' },
+  COVER_LETTER: { label: 'Cover Letter', gradient: 'from-purple-500 to-purple-700', textColor: 'text-purple-300' },
   COLD_OUTREACH: { label: 'Cold Outreach', gradient: 'from-orange-500 to-red-600', textColor: 'text-orange-300' },
   OTHER: { label: 'Other', gradient: 'from-slate-500 to-slate-700', textColor: 'text-slate-300' },
 }
