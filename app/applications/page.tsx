@@ -18,7 +18,9 @@ import {
   TrendingUp,
   FileText,
   Upload,
-  ChevronRight
+  ChevronRight,
+  ArrowUpRight,
+  Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -68,15 +70,15 @@ const APPLICATION_STATUSES = [
   'WITHDRAWN',
 ]
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  NOT_APPLIED: { label: 'Not Applied', color: 'bg-slate-100 text-slate-700 border-slate-200', icon: Clock },
-  APPLIED: { label: 'Applied', color: 'bg-blue-50 text-blue-700 border-blue-200', icon: FileText },
-  IN_REVIEW: { label: 'In Review', color: 'bg-amber-50 text-amber-700 border-amber-200', icon: Clock },
-  INTERVIEW_SCHEDULED: { label: 'Interview', color: 'bg-purple-50 text-purple-700 border-purple-200', icon: Calendar },
-  OFFER_RECEIVED: { label: 'Offer', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: TrendingUp },
-  ACCEPTED: { label: 'Accepted', color: 'bg-green-50 text-green-700 border-green-200', icon: Check },
-  REJECTED: { label: 'Rejected', color: 'bg-red-50 text-red-700 border-red-200', icon: X },
-  WITHDRAWN: { label: 'Withdrawn', color: 'bg-gray-50 text-gray-700 border-gray-200', icon: X },
+const statusConfig: Record<string, { label: string; gradient: string; icon: any; textColor: string }> = {
+  NOT_APPLIED: { label: 'Not Applied', gradient: 'from-slate-600 to-slate-800', icon: Clock, textColor: 'text-slate-300' },
+  APPLIED: { label: 'Applied', gradient: 'from-blue-500 to-blue-700', icon: FileText, textColor: 'text-blue-300' },
+  IN_REVIEW: { label: 'In Review', gradient: 'from-amber-500 to-orange-600', icon: Target, textColor: 'text-amber-300' },
+  INTERVIEW_SCHEDULED: { label: 'Interview', gradient: 'from-purple-500 to-purple-700', icon: Calendar, textColor: 'text-purple-300' },
+  OFFER_RECEIVED: { label: 'Offer', gradient: 'from-emerald-500 to-emerald-700', icon: TrendingUp, textColor: 'text-emerald-300' },
+  ACCEPTED: { label: 'Accepted', gradient: 'from-green-500 to-green-700', icon: Check, textColor: 'text-green-300' },
+  REJECTED: { label: 'Rejected', gradient: 'from-red-500 to-red-700', icon: X, textColor: 'text-red-300' },
+  WITHDRAWN: { label: 'Withdrawn', gradient: 'from-gray-500 to-gray-700', icon: X, textColor: 'text-gray-300' },
 }
 
 export default function ApplicationsPage() {
@@ -355,65 +357,83 @@ export default function ApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-slate-600">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-slate-400 text-lg font-medium flex items-center gap-3"
+        >
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+          Loading applications...
+        </motion.div>
       </div>
     )
   }
 
-  const stats = [
-    { label: 'Total', value: applications.length, icon: Target, color: 'text-slate-700' },
-    { label: 'In Review', value: applications.filter(a => a.status === 'IN_REVIEW').length, icon: Clock, color: 'text-amber-600' },
-    { label: 'Interviews', value: applications.filter(a => a.status === 'INTERVIEW_SCHEDULED').length, icon: Calendar, color: 'text-purple-600' },
-    { label: 'Offers', value: applications.filter(a => a.status === 'OFFER_RECEIVED').length, icon: TrendingUp, color: 'text-emerald-600' },
-  ]
+  const statusCounts = APPLICATION_STATUSES.reduce((acc, status) => {
+    acc[status] = applications.filter(a => a.status === status).length
+    return acc
+  }, {} as Record<string, number>)
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-slate-200 bg-white sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000" />
+      </div>
+
+      {/* Header */}
+      <div className="relative border-b border-white/10 bg-white/5 backdrop-blur-xl sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="text-slate-400 hover:text-slate-600 transition-colors">
-                <ChevronRight className="w-5 h-5 rotate-180" />
+            <div className="flex items-center gap-6">
+              <Link href="/" className="text-slate-400 hover:text-white transition-colors">
+                <ChevronRight className="w-6 h-6 rotate-180" />
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-slate-900">Applications</h1>
-                <p className="text-sm text-slate-500 mt-0.5">{applications.length} total applications</p>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent flex items-center gap-3">
+                  <Sparkles className="w-8 h-8 text-blue-400" />
+                  Applications
+                </h1>
+                <p className="text-slate-400 mt-1">{applications.length} total applications</p>
               </div>
             </div>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               New Application
             </motion.button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat, index) => (
+      <div className="relative max-w-7xl mx-auto px-6 py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Applied', count: statusCounts.APPLIED, gradient: 'from-blue-500 to-blue-700', icon: FileText },
+            { label: 'In Review', count: statusCounts.IN_REVIEW, gradient: 'from-amber-500 to-orange-600', icon: Target },
+            { label: 'Interview', count: statusCounts.INTERVIEW_SCHEDULED, gradient: 'from-purple-500 to-purple-700', icon: Calendar },
+            { label: 'Offers', count: statusCounts.OFFER_RECEIVED, gradient: 'from-emerald-500 to-emerald-700', icon: TrendingUp },
+          ].map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+              transition={{ delay: i * 0.1 }}
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all group"
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.label}</span>
-                <stat.icon className={cn("w-4 h-4", stat.color)} />
+              <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mb-4", stat.gradient)}>
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
-              <p className="text-2xl font-semibold text-slate-900">{stat.value}</p>
+              <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
+              <p className="text-3xl font-bold text-white">{stat.count}</p>
             </motion.div>
           ))}
         </div>
@@ -421,91 +441,111 @@ export default function ApplicationsPage() {
         {/* Applications List */}
         {applications.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="border-2 border-dashed border-slate-200 rounded-lg p-12 text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-16 text-center"
           >
-            <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-900 mb-1">No applications yet</h3>
-            <p className="text-sm text-slate-500 mb-6">Get started by creating your first application</p>
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Briefcase className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">No applications yet</h3>
+            <p className="text-slate-400 mb-6">Start tracking your job applications</p>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl inline-flex items-center gap-2"
             >
-              <Plus className="w-4 h-4" />
-              Add Application
+              <Plus className="w-5 h-5" />
+              Create First Application
             </button>
           </motion.div>
         ) : (
-          <div className="space-y-3">
-            <AnimatePresence>
+          <div className="space-y-4">
+            <AnimatePresence mode="popLayout">
               {applications.map((app, index) => {
-                const config = statusConfig[app.status]
+                const StatusIcon = statusConfig[app.status]?.icon || Clock
                 return (
                   <motion.div
                     key={app.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md hover:border-slate-300 transition-all"
+                    className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-white/20 transition-all"
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-6">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start gap-3 mb-2">
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="w-6 h-6 text-white" />
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-semibold text-slate-900 truncate">{app.positionTitle}</h3>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                              <Building2 className="w-3.5 h-3.5" />
-                              <span>{app.company.name}</span>
-                              <span className="text-slate-300">•</span>
-                              <Calendar className="w-3.5 h-3.5" />
-                              <span>{new Date(app.appliedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                            </div>
+                            <h3 className="text-xl font-bold text-white mb-1">{app.positionTitle}</h3>
+                            <p className="text-slate-400">{app.company.name}</p>
                           </div>
                         </div>
-                        {app.isReferred && app.referredByContact && (
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-md text-xs font-medium text-emerald-700">
-                            <Check className="w-3 h-3" />
-                            Referred by {app.referredByContact.name}
+
+                        <div className="flex items-center gap-4 flex-wrap mb-3">
+                          <div className="flex items-center gap-2 text-slate-400 text-sm">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(app.appliedDate).toLocaleDateString()}
                           </div>
+                          {app.isReferred && app.referredByContact && (
+                            <div className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 text-sm font-medium">
+                              Referred by {app.referredByContact.name}
+                            </div>
+                          )}
+                          {app.jobPostingUrl && (
+                            <a
+                              href={app.jobPostingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm"
+                            >
+                              View Job <ArrowUpRight className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+
+                        {app.description && (
+                          <p className="text-slate-400 text-sm line-clamp-2">{app.description}</p>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <select
                           value={app.status}
                           onChange={(e) => handleQuickStatusUpdate(app.id, e.target.value)}
                           className={cn(
-                            "px-3 py-1.5 text-xs font-medium border rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition-all",
-                            config.color
+                            "px-4 py-2 rounded-xl font-semibold text-sm cursor-pointer border-2 transition-all bg-gradient-to-r text-white",
+                            `${statusConfig[app.status]?.gradient} border-transparent hover:scale-105`
                           )}
                         >
                           {APPLICATION_STATUSES.map((status) => (
-                            <option key={status} value={status}>
-                              {statusConfig[status].label}
+                            <option key={status} value={status} className="bg-slate-900 text-white">
+                              {statusConfig[status]?.label || status}
                             </option>
                           ))}
                         </select>
 
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => openEditModal(app)}
-                          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </motion.button>
-
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleDelete(app.id)}
-                          disabled={deleteId === app.id}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </motion.button>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => openEditModal(app)}
+                            className="w-10 h-10 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 flex items-center justify-center text-blue-400 transition-all"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleDelete(app.id)}
+                            disabled={deleteId === app.id}
+                            className="w-10 h-10 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 flex items-center justify-center text-red-400 transition-all disabled:opacity-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </motion.button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -523,7 +563,7 @@ export default function ApplicationsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => {
               setShowModal(false)
               setEditingApp(null)
@@ -531,53 +571,43 @@ export default function ApplicationsPage() {
             }}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
             >
-              <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">
+              <div className="p-8 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                <h2 className="text-2xl font-bold text-white">
                   {editingApp ? 'Edit Application' : 'New Application'}
                 </h2>
-                <button
-                  onClick={() => {
-                    setShowModal(false)
-                    setEditingApp(null)
-                    resetForm()
-                  }}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </div>
 
-              <form onSubmit={editingApp ? handleEdit : handleCreate} className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-                <div className="space-y-5">
+              <form onSubmit={editingApp ? handleEdit : handleCreate} className="p-8 overflow-y-auto max-h-[calc(90vh-100px)]">
+                <div className="space-y-6">
                   {/* Company */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-slate-700">Company *</label>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-semibold text-slate-300">Company *</label>
                       <button
                         type="button"
                         onClick={() => openCompanyModal()}
-                        className="text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                        className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
                       >
                         + Add Company
                       </button>
                     </div>
                     <div className="relative mb-3">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
                         type="text"
                         value={companySearch}
                         onChange={(e) => setCompanySearch(e.target.value)}
                         placeholder="Search companies..."
-                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    <div className="border border-slate-200 rounded-lg max-h-48 overflow-y-auto">
+                    <div className="bg-white/5 border border-white/10 rounded-xl max-h-48 overflow-y-auto">
                       {filteredCompanies.length === 0 ? (
                         <div className="p-4 text-center text-sm text-slate-500">No companies found</div>
                       ) : (
@@ -585,33 +615,33 @@ export default function ApplicationsPage() {
                           <div
                             key={company.id}
                             className={cn(
-                              "flex items-center justify-between p-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors",
-                              formData.companyId === company.id && "bg-slate-50"
+                              "flex items-center justify-between p-4 border-b border-white/5 last:border-b-0 hover:bg-white/5 transition-colors",
+                              formData.companyId === company.id && "bg-blue-500/20"
                             )}
                           >
                             <button
                               type="button"
                               onClick={() => setFormData({ ...formData, companyId: company.id })}
-                              className="flex-1 text-left text-sm font-medium text-slate-900"
+                              className="flex-1 text-left text-white flex items-center gap-2"
                             >
-                              {formData.companyId === company.id && <Check className="w-3.5 h-3.5 inline mr-2 text-slate-900" />}
+                              {formData.companyId === company.id && <Check className="w-4 h-4 text-blue-400" />}
                               {company.name}
                             </button>
-                            <div className="flex gap-1">
+                            <div className="flex gap-2">
                               <button
                                 type="button"
                                 onClick={() => openCompanyModal(company)}
-                                className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+                                className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
                               >
-                                <Edit2 className="w-3.5 h-3.5" />
+                                <Edit2 className="w-4 h-4" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteCompany(company.id)}
                                 disabled={deletingCompanyId === company.id}
-                                className="p-1.5 text-slate-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                                className="p-2 hover:bg-white/10 rounded-lg text-red-400 disabled:opacity-50"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </div>
@@ -620,62 +650,58 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
 
-                  {/* Position */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Position *</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Position Title *</label>
                     <input
                       type="text"
                       value={formData.positionTitle}
                       onChange={(e) => setFormData({ ...formData, positionTitle: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Senior Software Engineer"
                       required
                     />
                   </div>
 
-                  {/* Job URL */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Job URL</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Job Posting URL</label>
                     <input
                       type="url"
                       value={formData.jobPostingUrl}
                       onChange={(e) => setFormData({ ...formData, jobPostingUrl: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="https://..."
                     />
                   </div>
 
-                  {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Notes</label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent resize-none"
                       rows={3}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                       placeholder="Add notes..."
                     />
                   </div>
 
-                  {/* Status */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {APPLICATION_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {statusConfig[status].label}
+                        <option key={status} value={status} className="bg-slate-900">
+                          {statusConfig[status]?.label || status}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   {/* Referral */}
-                  <div className="pt-4 border-t border-slate-200">
-                    <label className="flex items-center gap-2 cursor-pointer mb-3">
+                  <div className="pt-4 border-t border-white/10">
+                    <label className="flex items-center gap-3 cursor-pointer mb-4">
                       <input
                         type="checkbox"
                         checked={formData.isReferred}
@@ -686,24 +712,24 @@ export default function ApplicationsPage() {
                             referredById: e.target.checked ? formData.referredById : '',
                           })
                         }
-                        className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-2 focus:ring-slate-900"
+                        className="w-5 h-5 rounded bg-white/5 border-white/10"
                       />
-                      <span className="text-sm font-medium text-slate-700">This application was referred</span>
+                      <span className="text-white font-medium">This application was referred</span>
                     </label>
 
                     {formData.isReferred && (
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Referred By</label>
+                        <label className="block text-sm font-semibold text-slate-300 mb-3">Referred By</label>
                         <select
                           value={formData.referredById}
                           onChange={(e) => setFormData({ ...formData, referredById: e.target.value })}
-                          className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                          <option value="">Select contact</option>
+                          <option value="" className="bg-slate-900">Select contact</option>
                           {contacts
                             .filter((c) => !formData.companyId || c.company.id === formData.companyId)
                             .map((contact) => (
-                              <option key={contact.id} value={contact.id}>
+                              <option key={contact.id} value={contact.id} className="bg-slate-900">
                                 {contact.name}
                               </option>
                             ))}
@@ -714,9 +740,9 @@ export default function ApplicationsPage() {
 
                   {/* Files */}
                   {!editingApp && (
-                    <div className="pt-4 border-t border-slate-200 space-y-4">
+                    <div className="pt-4 border-t border-white/10 space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Resume *</label>
+                        <label className="block text-sm font-semibold text-slate-300 mb-3">Resume *</label>
                         <div className="relative">
                           <input
                             type="file"
@@ -728,18 +754,18 @@ export default function ApplicationsPage() {
                           />
                           <label
                             htmlFor="resume-upload"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-slate-400 transition-colors"
+                            className="flex items-center justify-center gap-2 w-full px-4 py-4 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-white/40 bg-white/5 transition-colors"
                           >
-                            <Upload className="w-4 h-4 text-slate-400" />
-                            <span className="text-sm text-slate-600">
-                              {resumeFile ? resumeFile.name : 'Upload resume'}
+                            <Upload className="w-5 h-5 text-slate-400" />
+                            <span className="text-sm text-slate-300 font-medium">
+                              {resumeFile ? resumeFile.name : 'Upload resume (PDF, DOC, DOCX)'}
                             </span>
                           </label>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Cover Letter</label>
+                        <label className="block text-sm font-semibold text-slate-300 mb-3">Cover Letter (Optional)</label>
                         <div className="relative">
                           <input
                             type="file"
@@ -750,11 +776,11 @@ export default function ApplicationsPage() {
                           />
                           <label
                             htmlFor="cover-upload"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-slate-400 transition-colors"
+                            className="flex items-center justify-center gap-2 w-full px-4 py-4 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-white/40 bg-white/5 transition-colors"
                           >
-                            <Upload className="w-4 h-4 text-slate-400" />
-                            <span className="text-sm text-slate-600">
-                              {coverLetterFile ? coverLetterFile.name : 'Upload cover letter (optional)'}
+                            <Upload className="w-5 h-5 text-slate-400" />
+                            <span className="text-sm text-slate-300 font-medium">
+                              {coverLetterFile ? coverLetterFile.name : 'Upload cover letter (PDF, DOC, DOCX)'}
                             </span>
                           </label>
                         </div>
@@ -763,7 +789,7 @@ export default function ApplicationsPage() {
                   )}
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200">
+                <div className="flex justify-end gap-4 mt-8 pt-8 border-t border-white/10">
                   <button
                     type="button"
                     onClick={() => {
@@ -771,19 +797,17 @@ export default function ApplicationsPage() {
                       setEditingApp(null)
                       resetForm()
                     }}
-                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold rounded-xl transition-all"
                   >
                     Cancel
                   </button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     type="submit"
                     disabled={submitting || !formData.companyId}
-                    className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Saving...' : editingApp ? 'Save Changes' : 'Create Application'}
-                  </motion.button>
+                  </button>
                 </div>
               </form>
             </motion.div>
@@ -798,7 +822,7 @@ export default function ApplicationsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => {
               setShowCompanyModal(false)
               setEditingCompany(null)
@@ -806,33 +830,33 @@ export default function ApplicationsPage() {
             }}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-xl shadow-xl max-w-md w-full"
+              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-md w-full"
             >
-              <div className="border-b border-slate-200 px-6 py-4">
-                <h2 className="text-lg font-semibold text-slate-900">
-                  {editingCompany ? 'Edit Company' : 'Add Company'}
+              <div className="p-6 border-b border-white/10">
+                <h2 className="text-xl font-bold text-white">
+                  {editingCompany ? 'Edit Company' : 'New Company'}
                 </h2>
               </div>
 
               <form onSubmit={editingCompany ? handleEditCompany : handleCreateCompany} className="p-6">
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Company Name *</label>
+                  <label className="block text-sm font-semibold text-slate-300 mb-3">Company Name *</label>
                   <input
                     type="text"
                     value={companyFormData.name}
                     onChange={(e) => setCompanyFormData({ name: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Google, Microsoft, etc."
                     required
                     autoFocus
                   />
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -840,24 +864,39 @@ export default function ApplicationsPage() {
                       setEditingCompany(null)
                       setCompanyFormData({ name: '' })
                     }}
-                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold rounded-xl transition-all"
                   >
                     Cancel
                   </button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     type="submit"
-                    className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
                   >
-                    {editingCompany ? 'Save' : 'Add'}
-                  </motion.button>
+                    {editingCompany ? 'Save' : 'Create'}
+                  </button>
                 </div>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style jsx global>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   )
 }

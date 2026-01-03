@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ChevronRight, Edit2, Trash2, Check, Users, UserCheck, Mail, Linkedin } from 'lucide-react'
+import { Plus, ChevronRight, Edit2, Trash2, Check, Users, UserCheck, Mail, Linkedin, Sparkles, Building2, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Contact {
@@ -39,14 +39,14 @@ const CONTACT_STATUSES = [
   'NO_RESPONSE',
 ]
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  REQUEST_SENT: { label: 'Request Sent', color: 'bg-slate-50 text-slate-700 border-slate-200' },
-  CONNECTED: { label: 'Connected', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  MESSAGED: { label: 'Messaged', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  REPLIED: { label: 'Replied', color: 'bg-green-50 text-green-700 border-green-200' },
-  MEETING_SCHEDULED: { label: 'Meeting', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-  REFERRED: { label: 'Referred', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  NO_RESPONSE: { label: 'No Response', color: 'bg-red-50 text-red-700 border-red-200' },
+const statusConfig: Record<string, { label: string; gradient: string }> = {
+  REQUEST_SENT: { label: 'Request Sent', gradient: 'from-slate-600 to-slate-800' },
+  CONNECTED: { label: 'Connected', gradient: 'from-blue-500 to-blue-700' },
+  MESSAGED: { label: 'Messaged', gradient: 'from-amber-500 to-orange-600' },
+  REPLIED: { label: 'Replied', gradient: 'from-green-500 to-green-700' },
+  MEETING_SCHEDULED: { label: 'Meeting', gradient: 'from-purple-500 to-purple-700' },
+  REFERRED: { label: 'Referred', gradient: 'from-emerald-500 to-emerald-700' },
+  NO_RESPONSE: { label: 'No Response', gradient: 'from-red-500 to-red-700' },
 }
 
 export default function ContactsPage() {
@@ -223,8 +223,15 @@ export default function ContactsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-600 text-sm">Loading contacts...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-slate-400 text-lg font-medium flex items-center gap-3"
+        >
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+          Loading contacts...
+        </motion.div>
       </div>
     )
   }
@@ -234,144 +241,132 @@ export default function ContactsPage() {
   const totalReferrals = contacts.reduce((acc, c) => acc + c._count.referredApplications, 0)
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000" />
+      </div>
+
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="relative border-b border-white/10 bg-white/5 backdrop-blur-xl sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="text-slate-400 hover:text-slate-600 transition-colors">
-                <ChevronRight className="w-5 h-5 rotate-180" />
+            <div className="flex items-center gap-6">
+              <Link href="/" className="text-slate-400 hover:text-white transition-colors">
+                <ChevronRight className="w-6 h-6 rotate-180" />
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-slate-900">Contacts</h1>
-                <p className="text-sm text-slate-500 mt-0.5">{contacts.length} total contacts</p>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent flex items-center gap-3">
+                  <Sparkles className="w-8 h-8 text-blue-400" />
+                  Contacts
+                </h1>
+                <p className="text-slate-400 mt-1">{contacts.length} networking contacts</p>
               </div>
             </div>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               New Contact
             </motion.button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-slate-600" />
+          {[
+            { label: 'Total', count: contacts.length, gradient: 'from-slate-600 to-slate-800', icon: Users },
+            { label: 'Connected', count: connectedCount, gradient: 'from-blue-500 to-blue-700', icon: UserCheck },
+            { label: 'Can Refer', count: canReferCount, gradient: 'from-green-500 to-green-700', icon: Check },
+            { label: 'Referrals', count: totalReferrals, gradient: 'from-purple-500 to-purple-700', icon: Mail },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
+            >
+              <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mb-4", stat.gradient)}>
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <p className="text-xs text-slate-500">Total</p>
-                <p className="text-xl font-semibold text-slate-900">{contacts.length}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                <UserCheck className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">Connected</p>
-                <p className="text-xl font-semibold text-slate-900">{connectedCount}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                <Check className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">Can Refer</p>
-                <p className="text-xl font-semibold text-slate-900">{canReferCount}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">Referrals</p>
-                <p className="text-xl font-semibold text-slate-900">{totalReferrals}</p>
-              </div>
-            </div>
-          </motion.div>
+              <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
+              <p className="text-3xl font-bold text-white">{stat.count}</p>
+            </motion.div>
+          ))}
         </div>
 
         {/* Contacts List */}
         {contacts.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
-            <p className="text-slate-500 text-sm">No contacts yet. Add your first LinkedIn connection!</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-16 text-center"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Users className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">No contacts yet</h3>
+            <p className="text-slate-400 mb-6">Start building your professional network</p>
+            <button
+              onClick={openCreateModal}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl inline-flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Add First Contact
+            </button>
+          </motion.div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <AnimatePresence mode="popLayout">
               {contacts.map((contact, index) => (
                 <motion.div
                   key={contact.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md hover:border-slate-300 transition-all"
+                  className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-white/20 transition-all"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-6">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-sm font-semibold text-slate-900">{contact.name}</h3>
-                        <span className="text-xs text-slate-500">at {contact.company.name}</span>
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                          <Users className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-xl font-bold text-white mb-1">{contact.name}</h3>
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <Building2 className="w-4 h-4" />
+                            <span>{contact.company.name}</span>
+                            {contact.position && (
+                              <>
+                                <span>•</span>
+                                <span className="text-sm">{contact.position}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
-                      {contact.position && (
-                        <p className="text-xs text-slate-500 mb-2">{contact.position}</p>
-                      )}
-
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <select
                           value={contact.status}
                           onChange={(e) => handleQuickStatusUpdate(contact.id, e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
                           className={cn(
-                            "text-xs px-2 py-1 rounded-md border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900",
-                            statusConfig[contact.status]?.color
+                            "px-3 py-1.5 rounded-xl font-semibold text-sm cursor-pointer border-2 transition-all bg-gradient-to-r text-white",
+                            `${statusConfig[contact.status]?.gradient} border-transparent hover:scale-105`
                           )}
                         >
                           {CONTACT_STATUSES.map((status) => (
-                            <option key={status} value={status}>
+                            <option key={status} value={status} className="bg-slate-900">
                               {statusConfig[status]?.label || status}
                             </option>
                           ))}
@@ -380,10 +375,10 @@ export default function ContactsPage() {
                         <button
                           onClick={() => handleToggleCanRefer(contact.id, contact.canRefer)}
                           className={cn(
-                            "text-xs px-2 py-1 rounded-md font-medium transition-colors",
+                            "px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
                             contact.canRefer
-                              ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
-                              : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100"
+                              ? "bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30"
+                              : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
                           )}
                         >
                           {contact.canRefer ? '✓ Can Refer' : 'Cannot Refer'}
@@ -392,10 +387,10 @@ export default function ContactsPage() {
                         <button
                           onClick={() => handleToggleWillingToRefer(contact.id, contact.willingToRefer)}
                           className={cn(
-                            "text-xs px-2 py-1 rounded-md font-medium transition-colors",
+                            "px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
                             contact.willingToRefer
-                              ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
-                              : "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+                              ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
+                              : "bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
                           )}
                         >
                           {contact.willingToRefer ? '✓ Willing' : 'Maybe'}
@@ -404,9 +399,9 @@ export default function ContactsPage() {
                         {contact.email && (
                           <a
                             href={`mailto:${contact.email}`}
-                            className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                            className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors"
                           >
-                            <Mail className="w-3 h-3" />
+                            <Mail className="w-4 h-4" />
                             Email
                           </a>
                         )}
@@ -416,29 +411,34 @@ export default function ContactsPage() {
                             href={contact.linkedinUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm transition-colors"
                           >
-                            <Linkedin className="w-3 h-3" />
+                            <Linkedin className="w-4 h-4" />
                             LinkedIn
+                            <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => openEditModal(contact)}
-                        className="p-1.5 hover:bg-slate-100 rounded-md transition-colors"
+                        className="w-10 h-10 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 flex items-center justify-center text-blue-400 transition-all"
                       >
-                        <Edit2 className="w-3.5 h-3.5 text-slate-600" />
-                      </button>
-                      <button
+                        <Edit2 className="w-4 h-4" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => handleDelete(contact.id)}
                         disabled={deleteId === contact.id}
-                        className="p-1.5 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                        className="w-10 h-10 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 flex items-center justify-center text-red-400 transition-all disabled:opacity-50"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                      </button>
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
                     </div>
                   </div>
                 </motion.div>
@@ -455,46 +455,46 @@ export default function ContactsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={closeModal}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
             >
-              <div className="p-6 border-b border-slate-200">
-                <h2 className="text-lg font-semibold text-slate-900">
+              <div className="p-8 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                <h2 className="text-2xl font-bold text-white">
                   {editingContact ? 'Edit Contact' : 'New Contact'}
                 </h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-100px)]">
+                <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Name *</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Name *</label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Company *</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Company *</label>
                     <select
                       value={formData.companyId}
                       onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
-                      <option value="">Select a company</option>
+                      <option value="" className="bg-slate-900">Select a company</option>
                       {companies.map((company) => (
-                        <option key={company.id} value={company.id}>
+                        <option key={company.id} value={company.id} className="bg-slate-900">
                           {company.name}
                         </option>
                       ))}
@@ -502,85 +502,85 @@ export default function ContactsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Email</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Email</label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">LinkedIn URL</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">LinkedIn URL</label>
                     <input
                       type="url"
                       value={formData.linkedinUrl}
                       onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="https://linkedin.com/in/..."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Position</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Position</label>
                     <input
                       type="text"
                       value={formData.position}
                       onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Status</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-3">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {CONTACT_STATUSES.map((status) => (
-                        <option key={status} value={status}>
+                        <option key={status} value={status} className="bg-slate-900">
                           {statusConfig[status]?.label || status}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  <div className="flex gap-6">
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <div className="flex gap-6 pt-4 border-t border-white/10">
+                    <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.canRefer}
                         onChange={(e) => setFormData({ ...formData, canRefer: e.target.checked })}
-                        className="w-4 h-4 rounded border-slate-300"
+                        className="w-5 h-5 rounded bg-white/5 border-white/10"
                       />
-                      Can Refer
+                      <span className="text-white font-medium">Can Refer</span>
                     </label>
 
-                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                    <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.willingToRefer}
                         onChange={(e) => setFormData({ ...formData, willingToRefer: e.target.checked })}
-                        className="w-4 h-4 rounded border-slate-300"
+                        className="w-5 h-5 rounded bg-white/5 border-white/10"
                       />
-                      Willing to Refer
+                      <span className="text-white font-medium">Willing to Refer</span>
                     </label>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200">
+                <div className="flex justify-end gap-4 mt-8 pt-8 border-t border-white/10">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold rounded-xl transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
                   >
                     {editingContact ? 'Save Changes' : 'Create Contact'}
                   </button>
@@ -590,6 +590,23 @@ export default function ContactsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style jsx global>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   )
 }

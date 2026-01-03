@@ -7,11 +7,9 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: '📊' },
   { name: 'Applications', href: '/applications', icon: '📝' },
   { name: 'Contacts', href: '/contacts', icon: '👥' },
-  { name: 'Referrals', href: '/referrals', icon: '🎯' },
   { name: 'Interviews', href: '/interviews', icon: '💼' },
   { name: 'Reminders', href: '/reminders', icon: '⏰' },
   { name: 'Email Templates', href: '/email-templates', icon: '✉️' },
-  { name: 'Analytics', href: '/analytics', icon: '📈' },
 ]
 
 export default function Sidebar() {

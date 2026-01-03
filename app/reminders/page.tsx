@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ChevronRight, Edit2, Trash2, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { Plus, ChevronRight, Edit2, Trash2, CheckCircle2, Clock, AlertCircle, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Reminder {
@@ -33,12 +33,12 @@ interface Application {
 
 const REMINDER_TYPES = ['FOLLOW_UP', 'INTERVIEW_PREP', 'APPLICATION_DEADLINE', 'NETWORK', 'OTHER']
 
-const typeConfig: Record<string, { label: string; color: string }> = {
-  FOLLOW_UP: { label: 'Follow Up', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  INTERVIEW_PREP: { label: 'Interview Prep', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-  APPLICATION_DEADLINE: { label: 'Deadline', color: 'bg-red-50 text-red-700 border-red-200' },
-  NETWORK: { label: 'Network', color: 'bg-green-50 text-green-700 border-green-200' },
-  OTHER: { label: 'Other', color: 'bg-slate-50 text-slate-700 border-slate-200' },
+const typeConfig: Record<string, { label: string; gradient: string; textColor: string }> = {
+  FOLLOW_UP: { label: 'Follow Up', gradient: 'from-blue-500 to-blue-700', textColor: 'text-blue-300' },
+  INTERVIEW_PREP: { label: 'Interview Prep', gradient: 'from-purple-500 to-purple-700', textColor: 'text-purple-300' },
+  APPLICATION_DEADLINE: { label: 'Deadline', gradient: 'from-red-500 to-red-700', textColor: 'text-red-300' },
+  NETWORK: { label: 'Network', gradient: 'from-emerald-500 to-emerald-700', textColor: 'text-emerald-300' },
+  OTHER: { label: 'Other', gradient: 'from-slate-500 to-slate-700', textColor: 'text-slate-300' },
 }
 
 export default function RemindersPage() {
@@ -182,8 +182,15 @@ export default function RemindersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-600 text-sm">Loading reminders...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-slate-400 text-lg font-medium flex items-center gap-3"
+        >
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+          Loading reminders...
+        </motion.div>
       </div>
     )
   }
@@ -193,65 +200,58 @@ export default function RemindersPage() {
   const overdueCount = pendingReminders.filter(r => isPastDue(r.dueDate)).length
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000" />
+      </div>
+
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="relative border-b border-white/10 bg-white/5 backdrop-blur-xl sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/" className="text-slate-400 hover:text-slate-600 transition-colors">
-                <ChevronRight className="w-5 h-5 rotate-180" />
+              <Link href="/" className="text-slate-400 hover:text-white transition-colors">
+                <ChevronRight className="w-6 h-6 rotate-180" />
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-slate-900">Reminders</h1>
-                <p className="text-sm text-slate-500 mt-0.5">{reminders.length} total reminders</p>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent flex items-center gap-3">
+                  <Sparkles className="w-8 h-8 text-blue-400" />
+                  Reminders
+                </h1>
+                <p className="text-slate-400 text-sm mt-1">{reminders.length} total reminders</p>
               </div>
             </div>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={openCreateModal}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               New Reminder
             </motion.button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-amber-600" />
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                <Clock className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Pending</p>
-                <p className="text-xl font-semibold text-slate-900">{pendingReminders.length}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">Overdue</p>
-                <p className="text-xl font-semibold text-slate-900">{overdueCount}</p>
+                <p className="text-slate-400 text-sm mb-1">Pending</p>
+                <p className="text-4xl font-bold text-white">{pendingReminders.length}</p>
               </div>
             </div>
           </motion.div>
@@ -260,15 +260,32 @@ export default function RemindersPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white border border-slate-200 rounded-lg p-4"
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
+                <AlertCircle className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Completed</p>
-                <p className="text-xl font-semibold text-slate-900">{completedReminders.length}</p>
+                <p className="text-slate-400 text-sm mb-1">Overdue</p>
+                <p className="text-4xl font-bold text-red-400">{overdueCount}</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+                <CheckCircle2 className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <p className="text-slate-400 text-sm mb-1">Completed</p>
+                <p className="text-4xl font-bold text-emerald-400">{completedReminders.length}</p>
               </div>
             </div>
           </motion.div>
@@ -276,16 +293,23 @@ export default function RemindersPage() {
 
         {/* Reminders List */}
         {reminders.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
-            <p className="text-slate-500 text-sm">No reminders yet. Stay organized!</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center"
+          >
+            <p className="text-slate-400 text-lg">No reminders yet. Stay organized!</p>
+          </motion.div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Pending */}
             {pendingReminders.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 mb-3">Pending ({pendingReminders.length})</h2>
-                <div className="space-y-3">
+                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                  Pending ({pendingReminders.length})
+                </h2>
+                <div className="space-y-4">
                   <AnimatePresence mode="popLayout">
                     {pendingReminders.map((reminder, index) => (
                       <motion.div
@@ -295,64 +319,72 @@ export default function RemindersPage() {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ delay: index * 0.05 }}
                         className={cn(
-                          "group bg-white border rounded-lg p-4 hover:shadow-md transition-all",
+                          "group bg-white/5 backdrop-blur-xl border rounded-2xl p-6 hover:bg-white/10 transition-all",
                           isPastDue(reminder.dueDate)
-                            ? "border-red-200 hover:border-red-300"
-                            : "border-slate-200 hover:border-slate-300"
+                            ? "border-red-500/50 hover:border-red-500/70 shadow-lg shadow-red-500/20"
+                            : "border-white/10 hover:border-white/20"
                         )}
                       >
                         <div className="flex items-start gap-4">
-                          <input
+                          <motion.input
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             type="checkbox"
                             checked={reminder.isCompleted}
                             onChange={() => handleToggleComplete(reminder.id, reminder.isCompleted)}
-                            className="mt-1 w-4 h-4 rounded border-slate-300 cursor-pointer"
+                            className="mt-1 w-5 h-5 rounded-lg border-2 border-white/30 bg-white/10 cursor-pointer accent-emerald-500"
                           />
 
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-semibold text-slate-900 mb-1">{reminder.title}</h3>
+                            <h3 className="text-lg font-bold text-white mb-2">{reminder.title}</h3>
                             {reminder.description && (
-                              <p className="text-xs text-slate-600 mb-2">{reminder.description}</p>
+                              <p className="text-sm text-slate-400 mb-3">{reminder.description}</p>
                             )}
                             <div className="flex items-center gap-3 flex-wrap">
                               <span
                                 className={cn(
-                                  "text-xs font-medium flex items-center gap-1",
-                                  isPastDue(reminder.dueDate) ? "text-red-600" : "text-slate-500"
+                                  "text-sm font-medium flex items-center gap-2 px-3 py-1.5 rounded-lg",
+                                  isPastDue(reminder.dueDate)
+                                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                                    : "bg-white/5 text-slate-300 border border-white/10"
                                 )}
                               >
-                                <Clock className="w-3 h-3" />
+                                <Clock className="w-4 h-4" />
                                 {new Date(reminder.dueDate).toLocaleDateString()}
                                 {isPastDue(reminder.dueDate) && " (Overdue)"}
                               </span>
                               <span className={cn(
-                                "text-xs px-2 py-0.5 rounded-md border font-medium",
-                                typeConfig[reminder.type]?.color
+                                "text-sm px-3 py-1.5 rounded-lg font-semibold bg-gradient-to-r text-white border-2 border-transparent",
+                                typeConfig[reminder.type]?.gradient
                               )}>
                                 {typeConfig[reminder.type]?.label || reminder.type}
                               </span>
                               {reminder.application && (
-                                <span className="text-xs text-slate-500">
+                                <span className="text-sm text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                                   {reminder.application.company.name} - {reminder.application.positionTitle}
                                 </span>
                               )}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
+                          <div className="flex items-center gap-2">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => openEditModal(reminder)}
-                              className="p-1.5 hover:bg-slate-100 rounded-md transition-colors"
+                              className="p-2.5 bg-white/5 hover:bg-blue-500/20 border border-white/10 hover:border-blue-500/30 rounded-xl transition-all"
                             >
-                              <Edit2 className="w-3.5 h-3.5 text-slate-600" />
-                            </button>
-                            <button
+                              <Edit2 className="w-4 h-4 text-blue-400" />
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => handleDelete(reminder.id)}
                               disabled={deleteId === reminder.id}
-                              className="p-1.5 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                              className="p-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl transition-all disabled:opacity-50"
                             >
-                              <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                            </button>
+                              <Trash2 className="w-4 h-4 text-red-400" />
+                            </motion.button>
                           </div>
                         </div>
                       </motion.div>
@@ -365,8 +397,11 @@ export default function RemindersPage() {
             {/* Completed */}
             {completedReminders.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 mb-3">Completed ({completedReminders.length})</h2>
-                <div className="space-y-3">
+                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  Completed ({completedReminders.length})
+                </h2>
+                <div className="space-y-4">
                   <AnimatePresence mode="popLayout">
                     {completedReminders.map((reminder, index) => (
                       <motion.div
@@ -375,39 +410,43 @@ export default function RemindersPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ delay: index * 0.05 }}
-                        className="group bg-white border border-slate-200 rounded-lg p-4 opacity-60 hover:shadow-md hover:border-slate-300 transition-all"
+                        className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 opacity-70 hover:opacity-100 hover:bg-white/10 hover:border-white/20 transition-all"
                       >
                         <div className="flex items-start gap-4">
-                          <input
+                          <motion.input
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             type="checkbox"
                             checked={reminder.isCompleted}
                             onChange={() => handleToggleComplete(reminder.id, reminder.isCompleted)}
-                            className="mt-1 w-4 h-4 rounded border-slate-300 cursor-pointer"
+                            className="mt-1 w-5 h-5 rounded-lg border-2 border-white/30 bg-emerald-500/20 cursor-pointer accent-emerald-500"
                           />
 
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-semibold text-slate-900 mb-1 line-through">{reminder.title}</h3>
+                            <h3 className="text-lg font-bold text-white mb-2 line-through opacity-70">{reminder.title}</h3>
                             {reminder.description && (
-                              <p className="text-xs text-slate-600 mb-2 line-through">{reminder.description}</p>
+                              <p className="text-sm text-slate-400 mb-3 line-through opacity-70">{reminder.description}</p>
                             )}
                             <div className="flex items-center gap-3">
-                              <span className="text-xs text-slate-500">
+                              <span className="text-sm text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                                 {new Date(reminder.dueDate).toLocaleDateString()}
                               </span>
-                              <span className="text-xs text-green-600 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
+                              <span className="text-sm text-emerald-400 flex items-center gap-2 bg-emerald-500/20 px-3 py-1.5 rounded-lg border border-emerald-500/30 font-semibold">
+                                <CheckCircle2 className="w-4 h-4" />
                                 Completed
                               </span>
                             </div>
                           </div>
 
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => handleDelete(reminder.id)}
                             disabled={deleteId === reminder.id}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-50 rounded-md disabled:opacity-50"
+                            className="p-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl transition-all disabled:opacity-50"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                          </button>
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </motion.button>
                         </div>
                       </motion.div>
                     ))}
@@ -426,42 +465,42 @@ export default function RemindersPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={closeModal}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-slate-900 border border-white/20 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
             >
-              <div className="p-6 border-b border-slate-200">
-                <h2 className="text-lg font-semibold text-slate-900">
+              <div className="p-6 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
                   {editingReminder ? 'Edit Reminder' : 'New Reminder'}
                 </h2>
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Title *</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Title *</label>
                     <input
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
                       placeholder="e.g., Follow up with recruiter"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Description</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Description</label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
                       rows={3}
                       placeholder="Add details about this reminder..."
                     />
@@ -469,25 +508,25 @@ export default function RemindersPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1.5">Due Date & Time *</label>
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">Due Date & Time *</label>
                       <input
                         type="datetime-local"
                         value={formData.dueDate}
                         onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                        className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1.5">Type</label>
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">Type</label>
                       <select
                         value={formData.type}
                         onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                        className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         {REMINDER_TYPES.map((type) => (
-                          <option key={type} value={type}>
+                          <option key={type} value={type} className="bg-slate-900 text-white">
                             {typeConfig[type]?.label || type}
                           </option>
                         ))}
@@ -496,15 +535,15 @@ export default function RemindersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Related Application (Optional)</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Related Application (Optional)</label>
                     <select
                       value={formData.applicationId}
                       onChange={(e) => setFormData({ ...formData, applicationId: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="">None - General reminder</option>
+                      <option value="" className="bg-slate-900 text-white">None - General reminder</option>
                       {applications.map((app) => (
-                        <option key={app.id} value={app.id}>
+                        <option key={app.id} value={app.id} className="bg-slate-900 text-white">
                           {app.company.name} - {app.positionTitle}
                         </option>
                       ))}
@@ -512,26 +551,47 @@ export default function RemindersPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200">
-                  <button
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-white/10">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={closeModal}
-                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="px-6 py-3 text-sm font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                    className="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all"
                   >
                     {editingReminder ? 'Save Changes' : 'Create Reminder'}
-                  </button>
+                  </motion.button>
                 </div>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style jsx global>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   )
 }
