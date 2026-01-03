@@ -1,291 +1,183 @@
 # Job Application Tracker
 
-A comprehensive Next.js application for tracking job applications, LinkedIn contacts, referrals, interviews, and more.
+A modern, feature-rich job application tracking system built with Next.js, Prisma, and a beautiful dark gradient UI.
 
-## Features
+## 🚀 Features
 
-### Core Features
-- **Company Management**: Track companies with names, websites, career pages, and notes
-- **Application Tracking**: Monitor application status from applied to accepted/rejected
-- **LinkedIn Contact Management**: Track connection requests, messages, meetings, and referral potential
-- **Referral Dashboard**: View all contacts willing to refer you
-- **Interview Tracking**: Schedule and track multiple interview rounds with feedback
-- **Reminders**: Set follow-up reminders for applications and contacts
-- **Email Templates**: Pre-built templates for outreach, follow-ups, and thank you notes
-- **Analytics Dashboard**: View success rates, response times, and application statistics
+- **Dashboard**: Overview of all applications, interviews, and contacts with analytics
+- **Applications**: Track job applications with status updates, salary info, and referrals
+- **Contacts**: Manage networking contacts and track referral potential
+- **Interviews**: Schedule and track interview rounds with meeting links
+- **Reminders**: Set follow-up reminders with overdue tracking
+- **Email Templates**: Save and reuse email templates for networking and applications
 
-### Technical Features
-- Dark-themed UI optimized for extended use
-- SQLite database with Prisma ORM
-- File upload for resumes and cover letters (local storage)
-- Fully responsive design
-- Type-safe with TypeScript
+## 🎨 UI Features
 
-## Project Structure
+- Modern dark gradient design with animated backgrounds
+- Glass morphism effects
+- Smooth animations with Framer Motion
+- Fully responsive layout
+- Status-based color coding
+
+## 📦 Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Database**: Prisma ORM with SQLite (development) / PostgreSQL or Turso (production)
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Language**: TypeScript
+
+## 🛠️ Local Development
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/doshi-kevin/ApplicationTracker.git
+   cd ApplicationTracker/job-tracker
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and update if needed:
+   ```env
+   DATABASE_URL="file:./dev.db"
+   ```
+
+4. **Initialize the database:**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+5. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🌐 Deploy to Vercel
+
+**⚠️ Important**: SQLite doesn't work well on Vercel. Choose one of these options:
+
+### Option 1: Deploy with Vercel Postgres (Easiest)
+
+1. **Click the Deploy button:**
+
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/doshi-kevin/ApplicationTracker)
+
+2. **After deployment:**
+   - Go to your Vercel dashboard
+   - Navigate to Storage → Create Database → Postgres
+   - Vercel will automatically inject the `DATABASE_URL` environment variable
+
+3. **Update your schema** (only if using Postgres):
+   In `prisma/schema.prisma`, change:
+   ```prisma
+   datasource db {
+     provider = "postgresql"  // Changed from "sqlite"
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+4. **Redeploy** to apply the schema changes
+
+### Option 2: Deploy with Turso (Serverless SQLite)
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed Turso setup instructions.
+
+## 📁 Project Structure
 
 ```
 job-tracker/
-├── app/
-│   ├── api/                    # API routes
-│   │   ├── companies/          # Company CRUD
-│   │   ├── applications/       # Application CRUD
-│   │   ├── contacts/           # Contact CRUD
-│   │   ├── interviews/         # Interview CRUD
-│   │   ├── reminders/          # Reminder CRUD
-│   │   ├── email-templates/    # Email template CRUD
-│   │   └── analytics/          # Analytics data
-│   ├── page.tsx                # Dashboard
-│   ├── layout.tsx              # Main layout with sidebar
-│   └── globals.css             # Global styles with dark theme
-├── components/
-│   └── Sidebar.tsx             # Navigation sidebar
-├── lib/
-│   ├── prisma.ts               # Prisma client setup
-│   └── fileUpload.ts           # File upload utilities
-├── prisma/
-│   ├── schema.prisma           # Database schema
-│   └── migrations/             # Database migrations
-└── uploads/                    # Uploaded files (resumes, cover letters)
+├── app/                      # Next.js app directory
+│   ├── api/                 # API routes
+│   │   ├── analytics/       # Analytics endpoints
+│   │   ├── applications/    # Application CRUD
+│   │   ├── companies/       # Company management
+│   │   ├── contacts/        # Contact management
+│   │   ├── email-templates/ # Template management
+│   │   ├── interviews/      # Interview tracking
+│   │   └── reminders/       # Reminder system
+│   ├── applications/        # Applications page
+│   ├── contacts/           # Contacts page
+│   ├── email-templates/    # Email templates page
+│   ├── interviews/         # Interviews page
+│   ├── reminders/          # Reminders page
+│   ├── layout.tsx          # Root layout
+│   └── page.tsx            # Dashboard
+├── components/             # Reusable components
+├── lib/                    # Utility functions
+├── prisma/                 # Prisma schema and migrations
+│   └── schema.prisma      # Database schema
+├── public/                 # Static assets
+└── uploads/               # File uploads (resumes, cover letters)
 ```
 
-## Database Schema
+## 💾 Database Schema
 
-### Models
-1. **Company** - Companies you're applying to
-2. **Application** - Job applications with status tracking
-3. **Contact** - LinkedIn contacts with interaction history
-4. **Interaction** - Individual interactions with contacts
-5. **Interview** - Interview schedules and feedback
-6. **Reminder** - Follow-up reminders
-7. **EmailTemplate** - Reusable email templates
+The app uses 7 main models:
 
-### Key Relationships
-- One Company → Many Applications
-- One Company → Many Contacts
-- One Contact → Many Interactions
-- One Contact → Many Referred Applications
-- One Application → Many Interviews
-- One Application → Many Reminders
+1. **Company**: Company information and job postings
+2. **Application**: Job applications with status tracking
+3. **Contact**: Networking contacts with referral tracking
+4. **Interview**: Interview scheduling and feedback
+5. **Reminder**: Task reminders and follow-ups
+6. **EmailTemplate**: Reusable email templates
+7. **Interaction**: Contact interaction history
 
-## Getting Started
+## 🔧 Available Scripts
 
-### Prerequisites
-- Node.js 18+ installed
-- npm or yarn package manager
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npx prisma studio` - Open Prisma Studio (database GUI)
+- `npx prisma db push` - Push schema changes to database
+- `npx prisma migrate dev` - Create a new migration
 
-### Installation
+## 📝 Environment Variables
 
-1. Navigate to the project directory:
-```bash
-cd job-tracker
+Required environment variables:
+
+```env
+DATABASE_URL="file:./dev.db"  # SQLite for local development
+# OR
+DATABASE_URL="postgresql://..."  # PostgreSQL for production
+# OR
+DATABASE_URL="libsql://..."  # Turso for serverless SQLite
+TURSO_AUTH_TOKEN="..."  # Only needed for Turso
 ```
 
-2. Install dependencies (already done):
-```bash
-npm install
-```
+## 🤝 Contributing
 
-3. The database has already been set up with Prisma migrate
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Running the Application
+## 📄 License
 
-1. Start the development server:
-```bash
-npm run dev
-```
+This project is open source and available under the MIT License.
 
-2. Open your browser and navigate to:
-```
-http://localhost:3000
-```
+## 🙏 Acknowledgments
 
-### Building for Production
+- Built with [Next.js](https://nextjs.org/)
+- Database management with [Prisma](https://www.prisma.io/)
+- UI components inspired by modern design patterns
+- Animations powered by [Framer Motion](https://www.framer.com/motion/)
 
-```bash
-npm run build
-npm start
-```
+## 📞 Support
 
-## Pages to Implement
-
-The following pages still need to be created. Here's the structure for each:
-
-### 1. Applications Page (`app/applications/page.tsx`)
-- List all applications with filtering by status
-- Add new application form (with file uploads)
-- Edit/delete existing applications
-- Quick status update toggle
-
-### 2. Contacts Page (`app/contacts/page.tsx`)
-- List all LinkedIn contacts
-- Filter by company, status, and referral willingness
-- Add/edit contacts
-- Track interaction history
-
-### 3. Referrals Page (`app/referrals/page.tsx`)
-- Show all contacts willing to refer
-- Group by company
-- Quick actions to track referral requests
-- Success tracking
-
-### 4. Interviews Page (`app/interviews/page.tsx`)
-- Calendar view of upcoming interviews
-- Add/edit interview details
-- Track multiple rounds per application
-- Add feedback and notes
-
-### 5. Reminders Page (`app/reminders/page.tsx`)
-- List all reminders sorted by due date
-- Mark as complete
-- Filter by type and completion status
-- Quick add reminder
-
-### 6. Email Templates Page (`app/email-templates/page.tsx`)
-- List templates by category
-- Create/edit/delete templates
-- Preview templates
-- Copy to clipboard
-
-### 7. Analytics Page (`app/analytics/page.tsx`)
-- Detailed charts and graphs
-- Application trends over time
-- Company-wise statistics
-- Success rate breakdowns
-
-## API Endpoints
-
-All endpoints are RESTful and return JSON:
-
-- `GET/POST /api/companies` - List/create companies
-- `GET/PATCH/DELETE /api/companies/[id]` - Get/update/delete company
-- `GET/POST /api/applications` - List/create applications
-- `GET/PATCH/DELETE /api/applications/[id]` - Get/update/delete application
-- `GET/POST /api/contacts` - List/create contacts
-- `GET/PATCH/DELETE /api/contacts/[id]` - Get/update/delete contact
-- `GET/POST /api/interviews` - List/create interviews
-- `PATCH/DELETE /api/interviews/[id]` - Update/delete interview
-- `GET/POST /api/reminders` - List/create reminders
-- `PATCH/DELETE /api/reminders/[id]` - Update/delete reminder
-- `GET/POST /api/email-templates` - List/create templates
-- `PATCH/DELETE /api/email-templates/[id]` - Update/delete template
-- `GET /api/analytics` - Get analytics data
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Install Vercel CLI:
-```bash
-npm i -g vercel
-```
-
-2. Deploy:
-```bash
-vercel
-```
-
-3. For production deployment:
-```bash
-vercel --prod
-```
-
-Note: For SQLite in production, you may want to consider migrating to PostgreSQL or using Vercel Postgres for better scalability.
-
-### Alternative: Docker
-
-Create a `Dockerfile`:
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-Build and run:
-```bash
-docker build -t job-tracker .
-docker run -p 3000:3000 job-tracker
-```
-
-## Customization
-
-### Adding New Fields
-
-1. Update the Prisma schema in `prisma/schema.prisma`
-2. Create a migration:
-```bash
-npx prisma migrate dev --name your_migration_name
-```
-3. Update API routes and UI components
-
-### Changing Theme Colors
-
-Edit the CSS variables in `app/globals.css`:
-```css
-:root {
-  --background: #0a0a0a;  /* Main background */
-  --card: #1a1a1a;        /* Card background */
-  --primary: #3b82f6;     /* Primary color */
-  /* ... */
-}
-```
-
-## Tips for Usage
-
-1. **Start by adding companies** - Create companies first before applications
-2. **Upload resumes** - Each application requires a resume file
-3. **Track contacts immediately** - Add LinkedIn connections as soon as you connect
-4. **Set reminders** - Use the reminder system to stay on top of follow-ups
-5. **Use email templates** - Save time with pre-written messages
-6. **Review analytics** - Check your success rates to optimize your approach
-
-## Troubleshooting
-
-### Database Issues
-If you encounter database issues, reset it:
-```bash
-npx prisma migrate reset
-npx prisma generate
-```
-
-### File Upload Issues
-Ensure the uploads directory exists:
-```bash
-mkdir -p uploads/resumes uploads/cover-letters
-```
-
-### Port Already in Use
-Change the port in `package.json`:
-```json
-"dev": "next dev -p 3001"
-```
-
-## Future Enhancements
-
-- Email integration for automatic tracking
-- Browser extension to add jobs while browsing
-- Mobile app
-- Calendar sync for interviews
-- Notification system
-- Export data to CSV/PDF
-- Job board integrations
-- AI-powered resume matching
-
-## License
-
-MIT License - Feel free to use this for your personal job search!
-
-## Support
-
-If you encounter any issues or have questions, please create an issue in the repository.
+If you have any questions or run into issues, please open an issue on GitHub.
 
 ---
 
-**Happy Job Hunting!** 🎯
+**Made with ❤️ by Kevin Doshi**
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
