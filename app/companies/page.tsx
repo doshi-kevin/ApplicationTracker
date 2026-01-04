@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ChevronRight, Edit2, Trash2, Building2, Sparkles, Globe, Briefcase, Users, ExternalLink } from 'lucide-react'
+import { Plus, ChevronRight, Edit2, Trash2, Building2, Sparkles, Globe, Briefcase, Users, ExternalLink, Search, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Company {
@@ -24,6 +24,11 @@ export default function CompaniesPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  // Search and Filter states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [hasApplicationsFilter, setHasApplicationsFilter] = useState<string>('all')
+  const [hasContactsFilter, setHasContactsFilter] = useState<string>('all')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -122,6 +127,26 @@ export default function CompaniesPage() {
     })
   }
 
+  // Filtered companies
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => {
+      // Search filter
+      const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase())
+
+      // Applications filter
+      const matchesApplications = hasApplicationsFilter === 'all' ||
+        (hasApplicationsFilter === 'yes' && (company._count?.applications || 0) > 0) ||
+        (hasApplicationsFilter === 'no' && (company._count?.applications || 0) === 0)
+
+      // Contacts filter
+      const matchesContacts = hasContactsFilter === 'all' ||
+        (hasContactsFilter === 'yes' && (company._count?.contacts || 0) > 0) ||
+        (hasContactsFilter === 'no' && (company._count?.contacts || 0) === 0)
+
+      return matchesSearch && matchesApplications && matchesContacts
+    })
+  }, [companies, searchTerm, hasApplicationsFilter, hasContactsFilter])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -149,7 +174,7 @@ export default function CompaniesPage() {
       {/* Header */}
       <div className="relative border-b border-white/10 bg-white/5 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <Link href="/" className="text-slate-400 hover:text-white transition-colors">
                 <ChevronRight className="w-6 h-6 rotate-180" />
@@ -159,7 +184,7 @@ export default function CompaniesPage() {
                   <Sparkles className="w-8 h-8 text-blue-400" />
                   Companies
                 </h1>
-                <p className="text-slate-400 text-sm mt-1">{companies.length} companies in your network</p>
+                <p className="text-slate-400 text-sm mt-1">{filteredCompanies.length} of {companies.length} companies</p>
               </div>
             </div>
             <motion.button
@@ -172,25 +197,76 @@ export default function CompaniesPage() {
               Add Company
             </motion.button>
           </div>
+
+          {/* Search and Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search companies..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+              />
+            </div>
+
+            {/* Has Applications Filter */}
+            <div className="relative">
+              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={hasApplicationsFilter}
+                onChange={(e) => setHasApplicationsFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Companies</option>
+                <option value="yes" className="bg-slate-900">Has Applications</option>
+                <option value="no" className="bg-slate-900">No Applications</option>
+              </select>
+            </div>
+
+            {/* Has Contacts Filter */}
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={hasContactsFilter}
+                onChange={(e) => setHasContactsFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Companies</option>
+                <option value="yes" className="bg-slate-900">Has Contacts</option>
+                <option value="no" className="bg-slate-900">No Contacts</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Companies Grid */}
-        {companies.length === 0 ? (
+        {filteredCompanies.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center"
           >
             <Building2 className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg mb-2">No companies yet</p>
-            <p className="text-slate-500 text-sm">Add companies you're interested in, even if there are no openings right now!</p>
+            <p className="text-slate-400 text-lg mb-2">
+              {searchTerm || hasApplicationsFilter !== 'all' || hasContactsFilter !== 'all'
+                ? 'No companies match your filters'
+                : 'No companies yet'}
+            </p>
+            <p className="text-slate-500 text-sm">
+              {searchTerm || hasApplicationsFilter !== 'all' || hasContactsFilter !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'Add companies you\'re interested in, even if there are no openings right now!'}
+            </p>
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
-              {companies.map((company, index) => (
+              {filteredCompanies.map((company, index) => (
                 <motion.div
                   key={company.id}
                   initial={{ opacity: 0, y: 20 }}
