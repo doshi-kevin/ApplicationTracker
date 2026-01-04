@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -20,7 +20,8 @@ import {
   Upload,
   ChevronRight,
   ArrowUpRight,
-  Sparkles
+  Sparkles,
+  Filter
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -108,6 +109,12 @@ export default function ApplicationsPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  // Search and Filter states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [companyFilter, setCompanyFilter] = useState<string>('all')
+  const [isReferredFilter, setIsReferredFilter] = useState<string>('all')
 
   useEffect(() => {
     fetchData()
@@ -370,8 +377,30 @@ export default function ApplicationsPage() {
     )
   }
 
+  // Filtered applications
+  const filteredApplications = useMemo(() => {
+    return applications.filter(app => {
+      // Search filter
+      const matchesSearch = app.positionTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.company.name.toLowerCase().includes(searchTerm.toLowerCase())
+
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || app.status === statusFilter
+
+      // Company filter
+      const matchesCompany = companyFilter === 'all' || app.company.id === companyFilter
+
+      // Referral filter
+      const matchesReferral = isReferredFilter === 'all' ||
+        (isReferredFilter === 'yes' && app.isReferred) ||
+        (isReferredFilter === 'no' && !app.isReferred)
+
+      return matchesSearch && matchesStatus && matchesCompany && matchesReferral
+    })
+  }, [applications, searchTerm, statusFilter, companyFilter, isReferredFilter])
+
   const statusCounts = APPLICATION_STATUSES.reduce((acc, status) => {
-    acc[status] = applications.filter(a => a.status === status).length
+    acc[status] = filteredApplications.filter(a => a.status === status).length
     return acc
   }, {} as Record<string, number>)
 
@@ -397,7 +426,7 @@ export default function ApplicationsPage() {
                   <Sparkles className="w-8 h-8 text-blue-400" />
                   Applications
                 </h1>
-                <p className="text-slate-400 mt-1">{applications.length} total applications</p>
+                <p className="text-slate-400 mt-1">{filteredApplications.length} of {applications.length} applications</p>
               </div>
             </div>
             <motion.button
@@ -409,6 +438,69 @@ export default function ApplicationsPage() {
               <Plus className="w-5 h-5" />
               New Application
             </motion.button>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by position or company..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Statuses</option>
+                {APPLICATION_STATUSES.map(status => (
+                  <option key={status} value={status} className="bg-slate-900">
+                    {statusConfig[status]?.label || status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Company Filter */}
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Companies</option>
+                {companies.map(company => (
+                  <option key={company.id} value={company.id} className="bg-slate-900">
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Referral Filter */}
+            <div className="relative">
+              <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={isReferredFilter}
+                onChange={(e) => setIsReferredFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Applications</option>
+                <option value="yes" className="bg-slate-900">Referred</option>
+                <option value="no" className="bg-slate-900">Not Referred</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -439,7 +531,7 @@ export default function ApplicationsPage() {
         </div>
 
         {/* Applications List */}
-        {applications.length === 0 ? (
+        {filteredApplications.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -448,8 +540,12 @@ export default function ApplicationsPage() {
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Briefcase className="w-10 h-10 text-white" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No applications yet</h3>
-            <p className="text-slate-400 mb-6">Start tracking your job applications</p>
+            <h3 className="text-2xl font-bold text-white mb-2">
+              {applications.length === 0 ? 'No applications yet' : 'No applications match your filters'}
+            </h3>
+            <p className="text-slate-400 mb-6">
+              {applications.length === 0 ? 'Start tracking your job applications' : 'Try adjusting your search or filters'}
+            </p>
             <button
               onClick={openCreateModal}
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl inline-flex items-center gap-2"
@@ -461,7 +557,7 @@ export default function ApplicationsPage() {
         ) : (
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {applications.map((app, index) => {
+              {filteredApplications.map((app, index) => {
                 const StatusIcon = statusConfig[app.status]?.icon || Clock
                 return (
                   <motion.div

@@ -85,7 +85,7 @@ export async function GET() {
 
     // Get contacts data
     const contacts = await prisma.contact.findMany()
-    const referrableContacts = contacts.filter(c => c.canRefer && c.willingToRefer).length
+    const referrableContacts = contacts.filter(c => c.canRefer).length
 
     return NextResponse.json({
       overview: {

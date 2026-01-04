@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const contacts = await prisma.contact.findMany({
       where: {
         ...(companyId && { companyId }),
-        ...(canRefer === 'true' && { canRefer: true, willingToRefer: true }),
+        ...(canRefer === 'true' && { canRefer: true }),
       },
       include: {
         company: true,
@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       position,
       status,
       canRefer,
-      willingToRefer,
       notes,
       conversationNotes,
     } = body
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
         position,
         status: status || 'REQUEST_SENT',
         canRefer: canRefer || false,
-        willingToRefer: willingToRefer || false,
         notes,
         conversationNotes,
       },

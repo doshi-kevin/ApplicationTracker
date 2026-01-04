@@ -78,7 +78,6 @@ model Contact {
   status          String  @default("REQUEST_SENT")
 
   canRefer        Boolean        @default(false)
-  willingToRefer  Boolean        @default(false)
 
   initialContactDate DateTime    @default(now())
   lastInteractionDate DateTime?
