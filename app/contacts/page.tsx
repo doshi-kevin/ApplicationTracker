@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ChevronRight, Edit2, Trash2, Check, Users, UserCheck, Mail, Linkedin, Sparkles, Building2, ExternalLink } from 'lucide-react'
+import { Plus, ChevronRight, Edit2, Trash2, Users, UserCheck, Mail, Share2, Sparkles, Building2, ExternalLink, Search, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Contact {
@@ -14,7 +14,6 @@ interface Contact {
   position?: string
   status: string
   canRefer: boolean
-  willingToRefer: boolean
   company: {
     id: string
     name: string
@@ -57,6 +56,12 @@ export default function ContactsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
 
+  // Search and Filter states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [companyFilter, setCompanyFilter] = useState<string>('all')
+  const [canReferFilter, setCanReferFilter] = useState<string>('all')
+
   const [formData, setFormData] = useState({
     name: '',
     companyId: '',
@@ -65,7 +70,6 @@ export default function ContactsPage() {
     position: '',
     status: 'REQUEST_SENT',
     canRefer: false,
-    willingToRefer: false,
   })
 
   useEffect(() => {
@@ -132,22 +136,6 @@ export default function ContactsPage() {
     }
   }
 
-  const handleToggleWillingToRefer = async (id: string, currentValue: boolean) => {
-    try {
-      const response = await fetch(`/api/contacts/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ willingToRefer: !currentValue }),
-      })
-
-      if (response.ok) {
-        await fetchContacts()
-      }
-    } catch (error) {
-      console.error('Error updating willing to refer:', error)
-    }
-  }
-
   const handleToggleCanRefer = async (id: string, currentValue: boolean) => {
     try {
       const response = await fetch(`/api/contacts/${id}`, {
@@ -197,7 +185,6 @@ export default function ContactsPage() {
       position: contact.position || '',
       status: contact.status,
       canRefer: contact.canRefer,
-      willingToRefer: contact.willingToRefer,
     })
     setShowModal(true)
   }
@@ -217,9 +204,31 @@ export default function ContactsPage() {
       position: '',
       status: 'REQUEST_SENT',
       canRefer: false,
-      willingToRefer: false,
     })
   }
+
+  // Filtered contacts
+  const filteredContacts = useMemo(() => {
+    return contacts.filter(contact => {
+      // Search filter
+      const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (contact.position?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || contact.status === statusFilter
+
+      // Company filter
+      const matchesCompany = companyFilter === 'all' || contact.company.id === companyFilter
+
+      // Can Refer filter
+      const matchesCanRefer = canReferFilter === 'all' ||
+        (canReferFilter === 'yes' && contact.canRefer) ||
+        (canReferFilter === 'no' && !contact.canRefer)
+
+      return matchesSearch && matchesStatus && matchesCompany && matchesCanRefer
+    })
+  }, [contacts, searchTerm, statusFilter, companyFilter, canReferFilter])
 
   if (loading) {
     return (
@@ -236,10 +245,6 @@ export default function ContactsPage() {
     )
   }
 
-  const connectedCount = contacts.filter(c => c.status === 'CONNECTED' || c.status === 'MESSAGED' || c.status === 'REPLIED').length
-  const canReferCount = contacts.filter(c => c.canRefer && c.willingToRefer).length
-  const totalReferrals = contacts.reduce((acc, c) => acc + c._count.referredApplications, 0)
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Animated Background */}
@@ -251,9 +256,9 @@ export default function ContactsPage() {
 
       {/* Header */}
       <div className="relative border-b border-white/10 bg-white/5 backdrop-blur-xl sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
               <Link href="/" className="text-slate-400 hover:text-white transition-colors">
                 <ChevronRight className="w-6 h-6 rotate-180" />
               </Link>
@@ -262,182 +267,216 @@ export default function ContactsPage() {
                   <Sparkles className="w-8 h-8 text-blue-400" />
                   Contacts
                 </h1>
-                <p className="text-slate-400 mt-1">{contacts.length} networking contacts</p>
+                <p className="text-slate-400 text-sm mt-1">{filteredContacts.length} of {contacts.length} contacts</p>
               </div>
             </div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={openCreateModal}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
             >
               <Plus className="w-5 h-5" />
-              New Contact
+              Add Contact
             </motion.button>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search contacts..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Statuses</option>
+                {CONTACT_STATUSES.map(status => (
+                  <option key={status} value={status} className="bg-slate-900">
+                    {statusConfig[status]?.label || status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Company Filter */}
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Companies</option>
+                {companies.map(company => (
+                  <option key={company.id} value={company.id} className="bg-slate-900">
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Can Refer Filter */}
+            <div className="relative">
+              <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={canReferFilter}
+                onChange={(e) => setCanReferFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-900">All Referral Status</option>
+                <option value="yes" className="bg-slate-900">Can Refer</option>
+                <option value="no" className="bg-slate-900">Cannot Refer</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Total', count: contacts.length, gradient: 'from-slate-600 to-slate-800', icon: Users },
-            { label: 'Connected', count: connectedCount, gradient: 'from-blue-500 to-blue-700', icon: UserCheck },
-            { label: 'Can Refer', count: canReferCount, gradient: 'from-green-500 to-green-700', icon: Check },
-            { label: 'Referrals', count: totalReferrals, gradient: 'from-purple-500 to-purple-700', icon: Mail },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
-            >
-              <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mb-4", stat.gradient)}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
-              <p className="text-3xl font-bold text-white">{stat.count}</p>
-            </motion.div>
-          ))}
-        </div>
-
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Contacts List */}
-        {contacts.length === 0 ? (
+        {filteredContacts.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center"
           >
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Users className="w-10 h-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No contacts yet</h3>
-            <p className="text-slate-400 mb-6">Start building your professional network</p>
-            <button
-              onClick={openCreateModal}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl inline-flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Add First Contact
-            </button>
+            <Users className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400 text-lg mb-2">
+              {searchTerm || statusFilter !== 'all' || companyFilter !== 'all' || canReferFilter !== 'all'
+                ? 'No contacts match your filters'
+                : 'No contacts yet'}
+            </p>
+            <p className="text-slate-500 text-sm">
+              {searchTerm || statusFilter !== 'all' || companyFilter !== 'all' || canReferFilter !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'Start building your professional network!'}
+            </p>
           </motion.div>
         ) : (
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {contacts.map((contact, index) => (
+              {filteredContacts.map((contact, index) => (
                 <motion.div
                   key={contact.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: index * 0.05 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: index * 0.03 }}
                   className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-white/20 transition-all"
                 >
-                  <div className="flex items-start justify-between gap-6">
+                  <div className="flex items-start gap-6">
+                    {/* Contact Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                          <Users className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
                           <h3 className="text-xl font-bold text-white mb-1">{contact.name}</h3>
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <Building2 className="w-4 h-4" />
-                            <span>{contact.company.name}</span>
+                          <div className="flex items-center gap-3 text-sm text-slate-400">
+                            <span className="flex items-center gap-1.5">
+                              <Building2 className="w-4 h-4" />
+                              {contact.company.name}
+                            </span>
                             {contact.position && (
-                              <>
-                                <span>•</span>
-                                <span className="text-sm">{contact.position}</span>
-                              </>
+                              <span>• {contact.position}</span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-3 flex-wrap mb-4">
+                        {/* Status Dropdown */}
                         <select
                           value={contact.status}
                           onChange={(e) => handleQuickStatusUpdate(contact.id, e.target.value)}
                           className={cn(
-                            "px-3 py-1.5 rounded-xl font-semibold text-sm cursor-pointer border-2 transition-all bg-gradient-to-r text-white",
+                            "px-4 py-2 rounded-xl font-semibold text-sm cursor-pointer border-2 transition-all bg-gradient-to-r text-white",
                             `${statusConfig[contact.status]?.gradient} border-transparent hover:scale-105`
                           )}
                         >
                           {CONTACT_STATUSES.map((status) => (
-                            <option key={status} value={status} className="bg-slate-900">
+                            <option key={status} value={status} className="bg-slate-900 text-white">
                               {statusConfig[status]?.label || status}
                             </option>
                           ))}
                         </select>
 
+                        {/* Can Refer Toggle */}
                         <button
                           onClick={() => handleToggleCanRefer(contact.id, contact.canRefer)}
                           className={cn(
-                            "px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
+                            "px-4 py-2 rounded-xl text-sm font-semibold transition-all",
                             contact.canRefer
-                              ? "bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30"
-                              : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                              ? "bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/30 hover:bg-emerald-500/30"
+                              : "bg-white/5 text-slate-400 border-2 border-white/10 hover:bg-white/10"
                           )}
                         >
                           {contact.canRefer ? '✓ Can Refer' : 'Cannot Refer'}
                         </button>
 
-                        <button
-                          onClick={() => handleToggleWillingToRefer(contact.id, contact.willingToRefer)}
-                          className={cn(
-                            "px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
-                            contact.willingToRefer
-                              ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
-                              : "bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
-                          )}
-                        >
-                          {contact.willingToRefer ? '✓ Willing' : 'Maybe'}
-                        </button>
-
-                        {contact.email && (
-                          <a
-                            href={`mailto:${contact.email}`}
-                            className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors"
-                          >
-                            <Mail className="w-4 h-4" />
-                            Email
-                          </a>
+                        {contact._count.referredApplications > 0 && (
+                          <span className="text-sm text-purple-400 bg-purple-500/20 px-3 py-1.5 rounded-lg border border-purple-500/30">
+                            {contact._count.referredApplications} referral{contact._count.referredApplications > 1 ? 's' : ''}
+                          </span>
                         )}
+                      </div>
 
+                      {/* Contact Links */}
+                      <div className="flex items-center gap-4">
                         {contact.linkedinUrl && (
                           <a
                             href={contact.linkedinUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                            className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
                           >
-                            <Linkedin className="w-4 h-4" />
+                            <Share2 className="w-4 h-4" />
                             LinkedIn
                             <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                        {contact.email && (
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+                          >
+                            <Mail className="w-4 h-4" />
+                            Email
                           </a>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Actions */}
+                    <div className="flex gap-2">
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => openEditModal(contact)}
-                        className="w-10 h-10 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 flex items-center justify-center text-blue-400 transition-all"
+                        className="p-2.5 bg-white/5 hover:bg-blue-500/20 border border-white/10 hover:border-blue-500/30 rounded-xl transition-all"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4 text-blue-400" />
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => handleDelete(contact.id)}
                         disabled={deleteId === contact.id}
-                        className="w-10 h-10 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 flex items-center justify-center text-red-400 transition-all disabled:opacity-50"
+                        className="p-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl transition-all disabled:opacity-50"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 text-red-400" />
                       </motion.button>
                     </div>
                   </div>
@@ -463,81 +502,86 @@ export default function ContactsPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-slate-900 border border-white/20 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
             >
-              <div className="p-8 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-                <h2 className="text-2xl font-bold text-white">
-                  {editingContact ? 'Edit Contact' : 'New Contact'}
+              <div className="p-6 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+                  {editingContact ? 'Edit Contact' : 'Add New Contact'}
                 </h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-8 overflow-y-auto max-h-[calc(90vh-100px)]">
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-300 mb-3">Name *</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+              <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">Name *</label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                        placeholder="John Doe"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300 mb-2">Company *</label>
+                      <select
+                        value={formData.companyId}
+                        onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
+                        className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="" className="bg-slate-900">Select company...</option>
+                        {companies.map((company) => (
+                          <option key={company.id} value={company.id} className="bg-slate-900">
+                            {company.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-300 mb-3">Company *</label>
-                    <select
-                      value={formData.companyId}
-                      onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="" className="bg-slate-900">Select a company</option>
-                      {companies.map((company) => (
-                        <option key={company.id} value={company.id} className="bg-slate-900">
-                          {company.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-300 mb-3">Email</label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-300 mb-3">LinkedIn URL</label>
-                    <input
-                      type="url"
-                      value={formData.linkedinUrl}
-                      onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="https://linkedin.com/in/..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-300 mb-3">Position</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Position</label>
                     <input
                       type="text"
                       value={formData.position}
                       onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                      placeholder="Software Engineer"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-300 mb-3">Status</label>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">LinkedIn URL</label>
+                    <input
+                      type="url"
+                      value={formData.linkedinUrl}
+                      onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                      placeholder="https://linkedin.com/in/username"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {CONTACT_STATUSES.map((status) => (
                         <option key={status} value={status} className="bg-slate-900">
@@ -547,43 +591,38 @@ export default function ContactsPage() {
                     </select>
                   </div>
 
-                  <div className="flex gap-6 pt-4 border-t border-white/10">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.canRefer}
-                        onChange={(e) => setFormData({ ...formData, canRefer: e.target.checked })}
-                        className="w-5 h-5 rounded bg-white/5 border-white/10"
-                      />
-                      <span className="text-white font-medium">Can Refer</span>
-                    </label>
-
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.willingToRefer}
-                        onChange={(e) => setFormData({ ...formData, willingToRefer: e.target.checked })}
-                        className="w-5 h-5 rounded bg-white/5 border-white/10"
-                      />
-                      <span className="text-white font-medium">Willing to Refer</span>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="canRefer"
+                      checked={formData.canRefer}
+                      onChange={(e) => setFormData({ ...formData, canRefer: e.target.checked })}
+                      className="w-5 h-5 rounded border-2 border-white/30 bg-white/10 cursor-pointer accent-emerald-500"
+                    />
+                    <label htmlFor="canRefer" className="text-sm font-semibold text-slate-300 cursor-pointer">
+                      Can refer me to opportunities at their company
                     </label>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-4 mt-8 pt-8 border-t border-white/10">
-                  <button
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-white/10">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={closeModal}
-                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold rounded-xl transition-all"
+                    className="px-6 py-3 text-sm font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
+                    className="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all"
                   >
-                    {editingContact ? 'Save Changes' : 'Create Contact'}
-                  </button>
+                    {editingContact ? 'Save Changes' : 'Add Contact'}
+                  </motion.button>
                 </div>
               </form>
             </motion.div>
