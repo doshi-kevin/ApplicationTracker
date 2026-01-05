@@ -378,8 +378,8 @@ export default function ApplicationsPage() {
   }
 
   // Filtered applications
-  const filteredApplications = useMemo(() => {
-    if (!applications || applications.length === 0) {
+  const filteredApplications = useMemo<Application[]>(() => {
+    if (!Array.isArray(applications) || applications.length === 0) {
       return []
     }
 
@@ -403,12 +403,14 @@ export default function ApplicationsPage() {
     })
   }, [applications, searchTerm, statusFilter, companyFilter, isReferredFilter])
 
-  const statusCounts = useMemo(() => {
-    if (!filteredApplications || filteredApplications.length === 0) {
-      return APPLICATION_STATUSES.reduce((acc, status) => {
-        acc[status] = 0
-        return acc
-      }, {} as Record<string, number>)
+  const statusCounts = useMemo<Record<string, number>>(() => {
+    const initialCounts = APPLICATION_STATUSES.reduce((acc, status) => {
+      acc[status] = 0
+      return acc
+    }, {} as Record<string, number>)
+
+    if (!Array.isArray(filteredApplications) || filteredApplications.length === 0) {
+      return initialCounts
     }
 
     return APPLICATION_STATUSES.reduce((acc, status) => {
