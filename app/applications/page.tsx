@@ -379,6 +379,10 @@ export default function ApplicationsPage() {
 
   // Filtered applications
   const filteredApplications = useMemo(() => {
+    if (!applications || applications.length === 0) {
+      return []
+    }
+
     return applications.filter(app => {
       // Search filter
       const matchesSearch = app.positionTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -400,6 +404,13 @@ export default function ApplicationsPage() {
   }, [applications, searchTerm, statusFilter, companyFilter, isReferredFilter])
 
   const statusCounts = useMemo(() => {
+    if (!filteredApplications || filteredApplications.length === 0) {
+      return APPLICATION_STATUSES.reduce((acc, status) => {
+        acc[status] = 0
+        return acc
+      }, {} as Record<string, number>)
+    }
+
     return APPLICATION_STATUSES.reduce((acc, status) => {
       acc[status] = filteredApplications.filter(a => a.status === status).length
       return acc
