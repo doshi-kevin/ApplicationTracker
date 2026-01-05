@@ -362,22 +362,7 @@ export default function ApplicationsPage() {
     company.name.toLowerCase().includes(companySearch.toLowerCase())
   )
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-slate-400 text-lg font-medium flex items-center gap-3"
-        >
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-          Loading applications...
-        </motion.div>
-      </div>
-    )
-  }
-
-  // Filtered applications
+  // Filtered applications - MUST be before early return to follow Rules of Hooks
   const filteredApplications = useMemo<Application[]>(() => {
     if (!Array.isArray(applications) || applications.length === 0) {
       return []
@@ -418,6 +403,21 @@ export default function ApplicationsPage() {
       return acc
     }, {} as Record<string, number>)
   }, [filteredApplications])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-slate-400 text-lg font-medium flex items-center gap-3"
+        >
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+          Loading applications...
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
