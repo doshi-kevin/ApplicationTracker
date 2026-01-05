@@ -399,10 +399,12 @@ export default function ApplicationsPage() {
     })
   }, [applications, searchTerm, statusFilter, companyFilter, isReferredFilter])
 
-  const statusCounts = APPLICATION_STATUSES.reduce((acc, status) => {
-    acc[status] = filteredApplications.filter(a => a.status === status).length
-    return acc
-  }, {} as Record<string, number>)
+  const statusCounts = useMemo(() => {
+    return APPLICATION_STATUSES.reduce((acc, status) => {
+      acc[status] = filteredApplications.filter(a => a.status === status).length
+      return acc
+    }, {} as Record<string, number>)
+  }, [filteredApplications])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
