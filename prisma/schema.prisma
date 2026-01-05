@@ -58,6 +58,7 @@ model Application {
 
   interviews      Interview[]
   reminders       Reminder[]
+  events          Event[]
 
   @@index([companyId])
   @@index([status])
@@ -90,6 +91,7 @@ model Contact {
 
   referredApplications Application[] @relation("ReferredApplications")
   interactions    Interaction[]
+  events          Event[]
 
   @@index([companyId])
   @@index([status])
@@ -111,6 +113,52 @@ model Interaction {
   @@index([interactionDate])
 }
 
+model Event {
+  id              String         @id @default(cuid())
+
+  // Type of event: INTERVIEW, NETWORKING_CALL, REMINDER, TODO
+  type            String         @default("REMINDER")
+
+  // Relations - optional, can be linked to application or contact
+  applicationId   String?
+  application     Application?   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  contactId       String?
+  contact         Contact?       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  // Basic info
+  title           String
+  description     String?
+  scheduledDate   DateTime
+  duration        Int?           // in minutes
+
+  // Interview-specific fields
+  round           Int?           // 1, 2, 3, etc. (for interviews)
+  interviewers    String?        // Comma-separated names
+  location        String?        // "Zoom", "Google Meet", "In-person", etc.
+  meetingLink     String?
+
+  // Status tracking
+  status          String         @default("PENDING") // PENDING, COMPLETED, CANCELLED, RESCHEDULED
+  isCompleted     Boolean        @default(false)
+  completedAt     DateTime?
+
+  // Feedback and notes
+  feedback        String?
+  notes           String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([type])
+  @@index([applicationId])
+  @@index([contactId])
+  @@index([scheduledDate])
+  @@index([isCompleted])
+  @@index([status])
+}
+
+// Keep old models for migration purposes - will be removed after data migration
 model Interview {
   id              String         @id @default(cuid())
   applicationId   String

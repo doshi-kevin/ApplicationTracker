@@ -8,8 +8,7 @@ const navigation = [
   { name: 'Companies', href: '/companies', icon: '🏢' },
   { name: 'Applications', href: '/applications', icon: '📝' },
   { name: 'Contacts', href: '/contacts', icon: '👥' },
-  { name: 'Interviews', href: '/interviews', icon: '💼' },
-  { name: 'Reminders', href: '/reminders', icon: '⏰' },
+  { name: 'Events', href: '/events', icon: '📅' },
   { name: 'Email Templates', href: '/email-templates', icon: '✉️' },
 ]
 
