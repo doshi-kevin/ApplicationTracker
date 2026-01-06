@@ -147,6 +147,10 @@ model Event {
   feedback        String?
   notes           String?
 
+  // Outcome tracking - what happened after the event
+  outcome         String?        // The result/outcome of the event
+  nextSteps       String?        // What needs to happen next
+
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 

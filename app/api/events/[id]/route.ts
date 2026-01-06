@@ -57,6 +57,8 @@ export async function PATCH(
       isCompleted,
       feedback,
       notes,
+      outcome,
+      nextSteps,
     } = body
 
     const updateData: any = {}
@@ -74,6 +76,8 @@ export async function PATCH(
     if (status !== undefined) updateData.status = status
     if (feedback !== undefined) updateData.feedback = feedback || null
     if (notes !== undefined) updateData.notes = notes || null
+    if (outcome !== undefined) updateData.outcome = outcome || null
+    if (nextSteps !== undefined) updateData.nextSteps = nextSteps || null
 
     if (isCompleted !== undefined) {
       updateData.isCompleted = isCompleted
