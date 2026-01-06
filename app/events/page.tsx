@@ -64,6 +64,8 @@ interface Event {
   completedAt?: string
   feedback?: string
   notes?: string
+  outcome?: string
+  nextSteps?: string
 }
 
 const EVENT_TYPES = [
@@ -83,6 +85,11 @@ export default function EventsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  // Outcome modal state
+  const [showOutcomeModal, setShowOutcomeModal] = useState(false)
+  const [completingEvent, setCompletingEvent] = useState<Event | null>(null)
+  const [outcomeData, setOutcomeData] = useState({ outcome: '', nextSteps: '' })
 
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -193,18 +200,51 @@ export default function EventsPage() {
   }
 
   const handleToggleComplete = async (event: Event) => {
+    if (!event.isCompleted) {
+      // Opening outcome modal when marking as complete
+      setCompletingEvent(event)
+      setOutcomeData({ outcome: '', nextSteps: '' })
+      setShowOutcomeModal(true)
+    } else {
+      // Uncompleting - just toggle
+      try {
+        const response = await fetch(`/api/events/${event.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isCompleted: false, outcome: null, nextSteps: null }),
+        })
+
+        if (response.ok) {
+          await fetchData()
+        }
+      } catch (error) {
+        console.error('Error toggling completion:', error)
+      }
+    }
+  }
+
+  const handleSubmitOutcome = async () => {
+    if (!completingEvent) return
+
     try {
-      const response = await fetch(`/api/events/${event.id}`, {
+      const response = await fetch(`/api/events/${completingEvent.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isCompleted: !event.isCompleted }),
+        body: JSON.stringify({
+          isCompleted: true,
+          outcome: outcomeData.outcome,
+          nextSteps: outcomeData.nextSteps,
+        }),
       })
 
       if (response.ok) {
         await fetchData()
+        setShowOutcomeModal(false)
+        setCompletingEvent(null)
+        setOutcomeData({ outcome: '', nextSteps: '' })
       }
     } catch (error) {
-      console.error('Error toggling completion:', error)
+      console.error('Error submitting outcome:', error)
     }
   }
 
@@ -483,6 +523,23 @@ export default function EventsPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Outcome Modal */}
+      <AnimatePresence>
+        {showOutcomeModal && (
+          <OutcomeModal
+            event={completingEvent}
+            outcomeData={outcomeData}
+            setOutcomeData={setOutcomeData}
+            onSubmit={handleSubmitOutcome}
+            onClose={() => {
+              setShowOutcomeModal(false)
+              setCompletingEvent(null)
+              setOutcomeData({ outcome: '', nextSteps: '' })
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -577,6 +634,28 @@ function EventCard({
           <p className="text-white/70 line-clamp-2">{event.description}</p>
         )}
       </div>
+
+      {/* Outcome Display - shown only for completed events */}
+      {event.isCompleted && event.outcome && (
+        <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+          <div className="flex items-start gap-2 mb-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-xs font-medium text-emerald-300 mb-1">Outcome</p>
+              <p className="text-sm text-white/90">{event.outcome}</p>
+            </div>
+          </div>
+          {event.nextSteps && (
+            <div className="flex items-start gap-2 mt-3 pt-3 border-t border-emerald-500/20">
+              <Target className="w-4 h-4 text-emerald-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-emerald-300 mb-1">Next Steps</p>
+                <p className="text-sm text-white/90">{event.nextSteps}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <button
@@ -828,6 +907,87 @@ function EventModal({
             </button>
           </div>
         </form>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+
+// Outcome Modal Component
+function OutcomeModal({ event, outcomeData, setOutcomeData, onSubmit, onClose }: any) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-lg w-full shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Event Completed!</h2>
+            <p className="text-slate-400 text-sm mt-1">{event?.title}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-slate-400" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              What was the outcome? *
+            </label>
+            <textarea
+              value={outcomeData.outcome}
+              onChange={(e) => setOutcomeData({ ...outcomeData, outcome: e.target.value })}
+              rows={4}
+              placeholder="e.g., Got to next round, Received offer, Great networking conversation, Learned about their tech stack..."
+              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              What are the next steps?
+            </label>
+            <textarea
+              value={outcomeData.nextSteps}
+              onChange={(e) => setOutcomeData({ ...outcomeData, nextSteps: e.target.value })}
+              rows={3}
+              placeholder="e.g., Prepare for technical round, Send thank you email, Follow up next week, Add them on LinkedIn..."
+              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onSubmit}
+              disabled={!outcomeData.outcome.trim()}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-medium shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Mark as Complete
+            </button>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   )
