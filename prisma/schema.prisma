@@ -218,5 +218,46 @@ model EmailTemplate {
   @@index([category])
 }
 
+model LearningItem {
+  id              String         @id @default(cuid())
+
+  // Type: SKILL, PROJECT, CONCEPT, COURSE
+  type            String         @default("CONCEPT")
+
+  // Basic info
+  title           String
+  description     String?
+
+  // Learning resources
+  resourceUrl     String?        // YouTube, course link, documentation
+  additionalLinks String?        // JSON array of additional resources
+
+  // Category/tags for organization
+  category        String?        // "Frontend", "Backend", "DevOps", "Data Science", etc.
+  tags            String?        // Comma-separated tags
+
+  // Progress tracking
+  status          String         @default("TO_LEARN") // TO_LEARN, IN_PROGRESS, COMPLETED, ON_HOLD
+  priority        String         @default("MEDIUM")   // LOW, MEDIUM, HIGH
+  progress        Int            @default(0)          // 0-100 percentage
+
+  // Timeline
+  targetDate      DateTime?      // When you want to complete this
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Notes and learnings
+  notes           String?        // Your notes while learning
+  keyTakeaways    String?        // What you learned
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+}
+
 // Enums
 
