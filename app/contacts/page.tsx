@@ -40,7 +40,7 @@ const CONTACT_STATUSES = [
   'MESSAGED',
   'REPLIED',
   'MEETING_SCHEDULED',
-  'REFERRED',
+  'WILL_REFER',
   'NO_RESPONSE',
 ]
 
@@ -50,7 +50,7 @@ const statusConfig: Record<string, { label: string; gradient: string }> = {
   MESSAGED: { label: 'Messaged', gradient: 'from-amber-500 to-orange-600' },
   REPLIED: { label: 'Replied', gradient: 'from-green-500 to-green-700' },
   MEETING_SCHEDULED: { label: 'Meeting', gradient: 'from-purple-500 to-purple-700' },
-  REFERRED: { label: 'Referred', gradient: 'from-emerald-500 to-emerald-700' },
+  WILL_REFER: { label: 'Will Refer', gradient: 'from-emerald-500 to-emerald-700' },
   NO_RESPONSE: { label: 'No Response', gradient: 'from-red-500 to-red-700' },
 }
 
@@ -63,7 +63,7 @@ export default function ContactsPage() {
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
 
   // Tab state for categorizing contacts
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'connected' | 'referring' | 'referred'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'connected' | 'referring'>('all')
 
   // Search and Filter states
   const [searchTerm, setSearchTerm] = useState('')
@@ -224,11 +224,10 @@ export default function ContactsPage() {
       if (activeTab === 'pending') {
         matchesTab = contact.status === 'REQUEST_SENT' && !contact.linkedinConnectedAt
       } else if (activeTab === 'connected') {
-        matchesTab = (contact.status === 'CONNECTED' || !!contact.linkedinConnectedAt) && !(contact.isReferring ?? false) && !(contact.hasReferred ?? false)
+        matchesTab = (contact.status === 'CONNECTED' || !!contact.linkedinConnectedAt) && contact.status !== 'WILL_REFER'
       } else if (activeTab === 'referring') {
-        matchesTab = contact.isReferring === true
-      } else if (activeTab === 'referred') {
-        matchesTab = contact.hasReferred === true
+        // Show contacts with status "WILL_REFER" or isReferring flag
+        matchesTab = contact.status === 'WILL_REFER' || contact.isReferring === true
       }
 
       // Search filter
@@ -255,9 +254,8 @@ export default function ContactsPage() {
   const tabCounts = useMemo(() => ({
     all: contacts.length,
     pending: contacts.filter(c => c.status === 'REQUEST_SENT' && !c.linkedinConnectedAt).length,
-    connected: contacts.filter(c => (c.status === 'CONNECTED' || c.linkedinConnectedAt) && !c.isReferring && !c.hasReferred).length,
-    referring: contacts.filter(c => c.isReferring).length,
-    referred: contacts.filter(c => c.hasReferred).length,
+    connected: contacts.filter(c => (c.status === 'CONNECTED' || c.linkedinConnectedAt) && c.status !== 'WILL_REFER').length,
+    referring: contacts.filter(c => c.status === 'WILL_REFER' || c.isReferring).length,
   }), [contacts])
 
   if (loading) {
@@ -317,8 +315,7 @@ export default function ContactsPage() {
               { key: 'all', label: 'All Contacts', count: tabCounts.all, gradient: 'from-slate-600 to-slate-700' },
               { key: 'pending', label: 'Pending Request', count: tabCounts.pending, gradient: 'from-amber-600 to-orange-700' },
               { key: 'connected', label: 'Connected', count: tabCounts.connected, gradient: 'from-blue-600 to-blue-700' },
-              { key: 'referring', label: 'Referring Me', count: tabCounts.referring, gradient: 'from-purple-600 to-purple-700' },
-              { key: 'referred', label: 'Successfully Referred', count: tabCounts.referred, gradient: 'from-emerald-600 to-teal-700' },
+              { key: 'referring', label: 'Will Refer', count: tabCounts.referring, gradient: 'from-emerald-600 to-teal-700' },
             ].map(tab => (
               <button
                 key={tab.key}
