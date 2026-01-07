@@ -275,7 +275,16 @@ export default function ApplicationsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!resumeFile) return
+
+    if (!resumeFile) {
+      alert('Please upload a resume file')
+      return
+    }
+
+    if (!formData.companyId) {
+      alert('Please select a company')
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -299,13 +308,19 @@ export default function ApplicationsPage() {
         body: formDataObj,
       })
 
-      if (response.ok) {
-        await fetchData()
-        setShowModal(false)
-        resetForm()
+      if (!response.ok) {
+        const errorData = await response.json()
+        alert(`Failed to create application: ${errorData.error || 'Unknown error'}`)
+        return
       }
+
+      alert('Application created successfully!')
+      await fetchData()
+      setShowModal(false)
+      resetForm()
     } catch (error) {
       console.error('Error creating application:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to create application'}`)
     } finally {
       setSubmitting(false)
     }
