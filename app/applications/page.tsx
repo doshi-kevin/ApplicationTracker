@@ -113,9 +113,9 @@ export default function ApplicationsPage() {
     status: 'APPLIED',
     isReferred: false,
     referredById: '',
+    resumePath: '',
+    coverLetterPath: '',
   })
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
-  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   // Quick Add Modal
@@ -276,36 +276,32 @@ export default function ApplicationsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!resumeFile) {
-      alert('Please upload a resume file')
-      return
-    }
-
     if (!formData.companyId) {
       alert('Please select a company')
       return
     }
 
+    if (!formData.positionTitle.trim()) {
+      alert('Please enter a position title')
+      return
+    }
+
     setSubmitting(true)
     try {
-      const formDataObj = new FormData()
-      formDataObj.append('companyId', formData.companyId)
-      formDataObj.append('positionTitle', formData.positionTitle)
-      formDataObj.append('description', formData.description)
-      formDataObj.append('jobPostingUrl', formData.jobPostingUrl)
-      formDataObj.append('status', formData.status)
-      formDataObj.append('isReferred', formData.isReferred.toString())
-      if (formData.referredById) {
-        formDataObj.append('referredById', formData.referredById)
-      }
-      formDataObj.append('resume', resumeFile)
-      if (coverLetterFile) {
-        formDataObj.append('coverLetter', coverLetterFile)
-      }
-
       const response = await fetch('/api/applications', {
         method: 'POST',
-        body: formDataObj,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId: formData.companyId,
+          positionTitle: formData.positionTitle,
+          description: formData.description || null,
+          jobPostingUrl: formData.jobPostingUrl || null,
+          status: formData.status,
+          isReferred: formData.isReferred,
+          referredById: formData.referredById || null,
+          resumePath: formData.resumePath || 'Not provided',
+          coverLetterPath: formData.coverLetterPath || null,
+        }),
       })
 
       if (!response.ok) {
@@ -408,6 +404,8 @@ export default function ApplicationsPage() {
       status: app.status,
       isReferred: app.isReferred,
       referredById: app.referredByContact?.id || '',
+      resumePath: app.resumePath || '',
+      coverLetterPath: app.coverLetterPath || '',
     })
     setShowModal(true)
   }
@@ -421,15 +419,15 @@ export default function ApplicationsPage() {
       status: 'APPLIED',
       isReferred: false,
       referredById: '',
+      resumePath: '',
+      coverLetterPath: '',
     })
-    setResumeFile(null)
-    setCoverLetterFile(null)
     setCompanySearch('')
   }
 
   const handleQuickAddStep1 = () => {
-    if (!quickAddData.companyName.trim() || !quickAddData.positionTitle.trim() || !quickAddData.resumePath.trim()) {
-      alert('Please fill in Company Name, Position Title, and Resume Path')
+    if (!quickAddData.companyName.trim() || !quickAddData.positionTitle.trim()) {
+      alert('Please fill in Company Name and Position Title')
       return
     }
 
@@ -482,7 +480,7 @@ export default function ApplicationsPage() {
           positionTitle: quickAddData.positionTitle,
           jobPostingUrl: quickAddData.jobPostingUrl || null,
           status: 'NOT_APPLIED',
-          resumePath: quickAddData.resumePath,
+          resumePath: quickAddData.resumePath || 'Not provided',
           coverLetterPath: quickAddData.coverLetterPath || null,
         }),
       })
@@ -1021,55 +1019,32 @@ export default function ApplicationsPage() {
                     )}
                   </div>
 
-                  {/* Files */}
-                  {!editingApp && (
-                    <div className="pt-4 border-t border-white/10 space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-300 mb-3">Resume *</label>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                            className="hidden"
-                            id="resume-upload"
-                            required
-                          />
-                          <label
-                            htmlFor="resume-upload"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-4 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-white/40 bg-white/5 transition-colors"
-                          >
-                            <Upload className="w-5 h-5 text-slate-400" />
-                            <span className="text-sm text-slate-300 font-medium">
-                              {resumeFile ? resumeFile.name : 'Upload resume (PDF, DOC, DOCX)'}
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-300 mb-3">Cover Letter (Optional)</label>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            onChange={(e) => setCoverLetterFile(e.target.files?.[0] || null)}
-                            className="hidden"
-                            id="cover-upload"
-                          />
-                          <label
-                            htmlFor="cover-upload"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-4 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-white/40 bg-white/5 transition-colors"
-                          >
-                            <Upload className="w-5 h-5 text-slate-400" />
-                            <span className="text-sm text-slate-300 font-medium">
-                              {coverLetterFile ? coverLetterFile.name : 'Upload cover letter (PDF, DOC, DOCX)'}
-                            </span>
-                          </label>
-                        </div>
-                      </div>
+                  {/* Resume and Cover Letter - Optional */}
+                  <div className="pt-4 border-t border-white/10 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300 mb-3">Resume Notes (Optional)</label>
+                      <input
+                        type="text"
+                        value={formData.resumePath}
+                        onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Software Engineer Resume v2, ML Resume"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Optional note about which resume version you're using</p>
                     </div>
-                  )}
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300 mb-3">Cover Letter Notes (Optional)</label>
+                      <input
+                        type="text"
+                        value={formData.coverLetterPath}
+                        onChange={(e) => setFormData({ ...formData, coverLetterPath: e.target.value })}
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Custom cover letter for this role"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Optional note about cover letter</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-4 mt-8 pt-8 border-t border-white/10">
@@ -1284,27 +1259,27 @@ export default function ApplicationsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Resume Path *
+                      Resume Notes (Optional)
                     </label>
                     <input
                       type="text"
                       value={quickAddData.resumePath}
                       onChange={(e) => setQuickAddData({ ...quickAddData, resumePath: e.target.value })}
-                      placeholder="e.g., C:/resumes/google-swe-resume.pdf"
+                      placeholder="e.g., Software Engineer Resume v2"
                       className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Full path to your resume file</p>
+                    <p className="text-xs text-slate-500 mt-1">Optional note about which resume version</p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Cover Letter Path (Optional)
+                      Cover Letter Notes (Optional)
                     </label>
                     <input
                       type="text"
                       value={quickAddData.coverLetterPath}
                       onChange={(e) => setQuickAddData({ ...quickAddData, coverLetterPath: e.target.value })}
-                      placeholder="e.g., C:/cover-letters/google-swe-cover.pdf"
+                      placeholder="e.g., Custom cover letter for this role"
                       className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
@@ -1321,7 +1296,7 @@ export default function ApplicationsPage() {
                     </button>
                     <button
                       onClick={handleQuickAddStep1}
-                      disabled={submitting || !quickAddData.companyName || !quickAddData.positionTitle || !quickAddData.resumePath}
+                      disabled={submitting || !quickAddData.companyName || !quickAddData.positionTitle}
                       className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       {submitting ? 'Adding...' : 'Next'}

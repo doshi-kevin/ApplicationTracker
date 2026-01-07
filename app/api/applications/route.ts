@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { saveFile, isValidResumeFile, isValidCoverLetterFile } from '@/lib/fileUpload'
 
 // GET all applications
 export async function GET(request: NextRequest) {
@@ -69,9 +68,9 @@ export async function POST(request: NextRequest) {
       } = body
 
       // Validation
-      if (!companyId || !positionTitle || !resumePath) {
+      if (!companyId || !positionTitle) {
         return NextResponse.json(
-          { error: 'Company, position title, and resume path are required' },
+          { error: 'Company and position title are required' },
           { status: 400 }
         )
       }
@@ -88,7 +87,7 @@ export async function POST(request: NextRequest) {
           salaryMin: salaryMin ? parseInt(salaryMin) : null,
           salaryMax: salaryMax ? parseInt(salaryMax) : null,
           salaryCurrency: salaryCurrency || 'USD',
-          resumePath,
+          resumePath: resumePath || 'Not provided',
           coverLetterPath: coverLetterPath || null,
           isReferred: isReferred || false,
           referredById: referredById || null,
@@ -104,85 +103,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(application, { status: 201 })
     }
 
-    // Handle FormData requests (Full Form with file uploads)
-    const formData = await request.formData()
-
-    const companyId = formData.get('companyId') as string
-    const positionTitle = formData.get('positionTitle') as string
-    const description = formData.get('description') as string
-    const jobPostingUrl = formData.get('jobPostingUrl') as string
-    const status = formData.get('status') as string
-    const salaryMin = formData.get('salaryMin') as string
-    const salaryMax = formData.get('salaryMax') as string
-    const salaryCurrency = formData.get('salaryCurrency') as string
-    const isReferred = formData.get('isReferred') === 'true'
-    const referredById = formData.get('referredById') as string
-    const applicationDeadline = formData.get('applicationDeadline') as string
-    const notes = formData.get('notes') as string
-    const resume = formData.get('resume') as File
-    const coverLetter = formData.get('coverLetter') as File | null
-
-    // Validation
-    if (!companyId || !positionTitle) {
-      return NextResponse.json(
-        { error: 'Company and position title are required' },
-        { status: 400 }
-      )
-    }
-
-    if (!resume) {
-      return NextResponse.json(
-        { error: 'Resume is required' },
-        { status: 400 }
-      )
-    }
-
-    if (!isValidResumeFile(resume.name)) {
-      return NextResponse.json(
-        { error: 'Invalid resume file format. Allowed: PDF, DOC, DOCX' },
-        { status: 400 }
-      )
-    }
-
-    if (coverLetter && !isValidCoverLetterFile(coverLetter.name)) {
-      return NextResponse.json(
-        { error: 'Invalid cover letter file format. Allowed: PDF, DOC, DOCX, TXT' },
-        { status: 400 }
-      )
-    }
-
-    // Save files
-    const resumePath = await saveFile(resume, 'resumes')
-    const coverLetterPath = coverLetter
-      ? await saveFile(coverLetter, 'cover-letters')
-      : null
-
-    // Create application
-    const application = await prisma.application.create({
-      data: {
-        companyId,
-        positionTitle,
-        description: description || null,
-        jobPostingUrl: jobPostingUrl || null,
-        status: status as any || 'APPLIED',
-        appliedDate: new Date(),
-        salaryMin: salaryMin ? parseInt(salaryMin) : null,
-        salaryMax: salaryMax ? parseInt(salaryMax) : null,
-        salaryCurrency: salaryCurrency || 'USD',
-        resumePath,
-        coverLetterPath,
-        isReferred,
-        referredById: referredById || null,
-        applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null,
-        notes: notes || null,
-      },
-      include: {
-        company: true,
-        referredByContact: true,
-      },
-    })
-
-    return NextResponse.json(application, { status: 201 })
+    // If not JSON, return error
+    return NextResponse.json(
+      { error: 'Invalid request format. Please use JSON.' },
+      { status: 400 }
+    )
   } catch (error) {
     console.error('Error creating application:', error)
     return NextResponse.json(
