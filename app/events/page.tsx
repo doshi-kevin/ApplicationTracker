@@ -66,6 +66,12 @@ interface Event {
   notes?: string
   outcome?: string
   nextSteps?: string
+  nextStepsDueDate?: string
+}
+
+interface NextStep {
+  text: string
+  completed: boolean
 }
 
 const EVENT_TYPES = [
@@ -89,7 +95,12 @@ export default function EventsPage() {
   // Outcome modal state
   const [showOutcomeModal, setShowOutcomeModal] = useState(false)
   const [completingEvent, setCompletingEvent] = useState<Event | null>(null)
-  const [outcomeData, setOutcomeData] = useState({ outcome: '', nextSteps: '' })
+  const [outcomeData, setOutcomeData] = useState({
+    outcome: '',
+    nextSteps: [] as NextStep[],
+    nextStepsDueDate: ''
+  })
+  const [nextStepInput, setNextStepInput] = useState('')
 
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -203,7 +214,8 @@ export default function EventsPage() {
     if (!event.isCompleted) {
       // Opening outcome modal when marking as complete
       setCompletingEvent(event)
-      setOutcomeData({ outcome: '', nextSteps: '' })
+      setOutcomeData({ outcome: '', nextSteps: [], nextStepsDueDate: '' })
+      setNextStepInput('')
       setShowOutcomeModal(true)
     } else {
       // Uncompleting - just toggle
@@ -211,7 +223,7 @@ export default function EventsPage() {
         const response = await fetch(`/api/events/${event.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isCompleted: false, outcome: null, nextSteps: null }),
+          body: JSON.stringify({ isCompleted: false, outcome: null, nextSteps: null, nextStepsDueDate: null }),
         })
 
         if (response.ok) {
@@ -233,7 +245,8 @@ export default function EventsPage() {
         body: JSON.stringify({
           isCompleted: true,
           outcome: outcomeData.outcome,
-          nextSteps: outcomeData.nextSteps,
+          nextSteps: JSON.stringify(outcomeData.nextSteps),
+          nextStepsDueDate: outcomeData.nextStepsDueDate,
         }),
       })
 
@@ -241,10 +254,38 @@ export default function EventsPage() {
         await fetchData()
         setShowOutcomeModal(false)
         setCompletingEvent(null)
-        setOutcomeData({ outcome: '', nextSteps: '' })
+        setOutcomeData({ outcome: '', nextSteps: [], nextStepsDueDate: '' })
+        setNextStepInput('')
       }
     } catch (error) {
       console.error('Error submitting outcome:', error)
+    }
+  }
+
+  const handleToggleNextStep = async (event: Event, stepIndex: number) => {
+    try {
+      const steps: NextStep[] = event.nextSteps ? JSON.parse(event.nextSteps) : []
+      steps[stepIndex].completed = !steps[stepIndex].completed
+
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nextSteps: JSON.stringify(steps),
+        }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        // If deleted, refresh data
+        if (result.deleted) {
+          await fetchData()
+        } else {
+          await fetchData()
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling next step:', error)
     }
   }
 

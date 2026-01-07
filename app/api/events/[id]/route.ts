@@ -59,6 +59,7 @@ export async function PATCH(
       notes,
       outcome,
       nextSteps,
+      nextStepsDueDate,
     } = body
 
     const updateData: any = {}
@@ -78,12 +79,31 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes || null
     if (outcome !== undefined) updateData.outcome = outcome || null
     if (nextSteps !== undefined) updateData.nextSteps = nextSteps || null
+    if (nextStepsDueDate !== undefined) updateData.nextStepsDueDate = nextStepsDueDate ? new Date(nextStepsDueDate) : null
 
     if (isCompleted !== undefined) {
       updateData.isCompleted = isCompleted
       updateData.completedAt = isCompleted ? new Date() : null
       if (isCompleted) {
         updateData.status = 'COMPLETED'
+      }
+    }
+
+    // Check if all next steps are completed, if so, delete the event
+    if (nextSteps !== undefined && nextSteps) {
+      try {
+        const steps = JSON.parse(nextSteps)
+        const allCompleted = Array.isArray(steps) && steps.every((step: any) => step.completed === true)
+
+        if (allCompleted && steps.length > 0) {
+          // Auto-delete event when all next steps are done
+          await prisma.event.delete({
+            where: { id },
+          })
+          return NextResponse.json({ success: true, deleted: true, message: 'All next steps completed. Event auto-deleted.' })
+        }
+      } catch (e) {
+        // If JSON parsing fails, continue normally
       }
     }
 

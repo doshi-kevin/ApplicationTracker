@@ -149,7 +149,8 @@ model Event {
 
   // Outcome tracking - what happened after the event
   outcome         String?        // The result/outcome of the event
-  nextSteps       String?        // What needs to happen next
+  nextSteps       String?        // JSON array of {text: string, completed: boolean}
+  nextStepsDueDate DateTime?     // Due date for next steps
 
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
