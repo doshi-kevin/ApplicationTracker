@@ -110,6 +110,16 @@ export default function ApplicationsPage() {
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // Quick Add Modal
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false)
+  const [quickAddData, setQuickAddData] = useState({
+    companyName: '',
+    positionTitle: '',
+    jobPostingUrl: '',
+    resumePath: '',
+    coverLetterPath: '',
+  })
+
   // Search and Filter states
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -358,6 +368,63 @@ export default function ApplicationsPage() {
     setCompanySearch('')
   }
 
+  const handleQuickAdd = async () => {
+    if (!quickAddData.companyName.trim() || !quickAddData.positionTitle.trim() || !quickAddData.resumePath.trim()) {
+      alert('Please fill in Company Name, Position Title, and Resume Path')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      // Step 1: Create or find company
+      let companyId = ''
+      const existingCompany = companies.find(c => c.name.toLowerCase() === quickAddData.companyName.trim().toLowerCase())
+
+      if (existingCompany) {
+        companyId = existingCompany.id
+      } else {
+        // Create new company
+        const companyRes = await fetch('/api/companies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: quickAddData.companyName.trim() }),
+        })
+        const newCompany = await companyRes.json()
+        companyId = newCompany.id
+      }
+
+      // Step 2: Create application
+      const appRes = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId,
+          positionTitle: quickAddData.positionTitle,
+          jobPostingUrl: quickAddData.jobPostingUrl || null,
+          status: 'NOT_APPLIED',
+          resumePath: quickAddData.resumePath,
+          coverLetterPath: quickAddData.coverLetterPath || null,
+        }),
+      })
+
+      if (appRes.ok) {
+        await fetchData()
+        setShowQuickAddModal(false)
+        setQuickAddData({
+          companyName: '',
+          positionTitle: '',
+          jobPostingUrl: '',
+          resumePath: '',
+          coverLetterPath: '',
+        })
+      }
+    } catch (error) {
+      console.error('Error quick adding application:', error)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(companySearch.toLowerCase())
   )
@@ -444,15 +511,26 @@ export default function ApplicationsPage() {
                 <p className="text-slate-400 mt-1">{filteredApplications.length} of {applications.length} applications</p>
               </div>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={openCreateModal}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              New Application
-            </motion.button>
+            <div className="flex gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowQuickAddModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 flex items-center gap-2 transition-all"
+              >
+                <Sparkles className="w-5 h-5" />
+                Quick Add
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={openCreateModal}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Full Form
+              </motion.button>
+            </div>
           </div>
 
           {/* Search and Filters */}
@@ -987,6 +1065,126 @@ export default function ApplicationsPage() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Add Modal */}
+      <AnimatePresence>
+        {showQuickAddModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowQuickAddModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-8 max-w-2xl w-full shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                    Quick Add Application
+                  </h2>
+                  <p className="text-slate-400 text-sm mt-1">Just the essentials - we'll auto-create the company if needed</p>
+                </div>
+                <button
+                  onClick={() => setShowQuickAddModal(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Company Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddData.companyName}
+                    onChange={(e) => setQuickAddData({ ...quickAddData, companyName: e.target.value })}
+                    placeholder="e.g., Google, Meta, Amazon"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Position Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddData.positionTitle}
+                    onChange={(e) => setQuickAddData({ ...quickAddData, positionTitle: e.target.value })}
+                    placeholder="e.g., Senior Software Engineer, Product Manager"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    LinkedIn Job URL
+                  </label>
+                  <input
+                    type="url"
+                    value={quickAddData.jobPostingUrl}
+                    onChange={(e) => setQuickAddData({ ...quickAddData, jobPostingUrl: e.target.value })}
+                    placeholder="https://www.linkedin.com/jobs/..."
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Resume Path *
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddData.resumePath}
+                    onChange={(e) => setQuickAddData({ ...quickAddData, resumePath: e.target.value })}
+                    placeholder="e.g., C:/resumes/google-swe-resume.pdf"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Full path to your resume file</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Cover Letter Path (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddData.coverLetterPath}
+                    onChange={(e) => setQuickAddData({ ...quickAddData, coverLetterPath: e.target.value })}
+                    placeholder="e.g., C:/cover-letters/google-swe-cover.pdf"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowQuickAddModal(false)}
+                    className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleQuickAdd}
+                    disabled={submitting || !quickAddData.companyName || !quickAddData.positionTitle || !quickAddData.resumePath}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {submitting ? 'Adding...' : 'Quick Add'}
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}

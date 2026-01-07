@@ -289,6 +289,24 @@ export default function EventsPage() {
     }
   }
 
+  const handleUpdateEventDate = async (event: Event, newDate: string) => {
+    try {
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scheduledDate: newDate,
+        }),
+      })
+
+      if (response.ok) {
+        await fetchData()
+      }
+    } catch (error) {
+      console.error('Error updating event date:', error)
+    }
+  }
+
   const handleDelete = async (id: string) => {
     try {
       setDeleteId(id)
@@ -500,6 +518,8 @@ export default function EventsPage() {
                     event={event}
                     index={index}
                     onToggleComplete={handleToggleComplete}
+                    onToggleNextStep={handleToggleNextStep}
+                    onUpdateEventDate={handleUpdateEventDate}
                     onEdit={openEditModal}
                     onDelete={handleDelete}
                     deleteId={deleteId}
@@ -533,6 +553,8 @@ export default function EventsPage() {
                     event={event}
                     index={index}
                     onToggleComplete={handleToggleComplete}
+                    onToggleNextStep={handleToggleNextStep}
+                    onUpdateEventDate={handleUpdateEventDate}
                     onEdit={openEditModal}
                     onDelete={handleDelete}
                     deleteId={deleteId}
@@ -572,11 +594,14 @@ export default function EventsPage() {
             event={completingEvent}
             outcomeData={outcomeData}
             setOutcomeData={setOutcomeData}
+            nextStepInput={nextStepInput}
+            setNextStepInput={setNextStepInput}
             onSubmit={handleSubmitOutcome}
             onClose={() => {
               setShowOutcomeModal(false)
               setCompletingEvent(null)
-              setOutcomeData({ outcome: '', nextSteps: '' })
+              setOutcomeData({ outcome: '', nextSteps: [], nextStepsDueDate: '' })
+              setNextStepInput('')
             }}
           />
         )}
@@ -590,6 +615,8 @@ function EventCard({
   event,
   index,
   onToggleComplete,
+  onToggleNextStep,
+  onUpdateEventDate,
   onEdit,
   onDelete,
   deleteId,
@@ -597,6 +624,9 @@ function EventCard({
   getEventColor,
   formatDate,
 }: any) {
+  const [isEditingDate, setIsEditingDate] = useState(false)
+  const [tempDate, setTempDate] = useState('')
+
   const Icon = getEventIcon(event.type)
   const color = getEventColor(event.type)
 
@@ -645,7 +675,44 @@ function EventCard({
       <div className="space-y-2 mb-4 text-sm text-white/80">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4" />
-          <span>{formatDate(event.scheduledDate)}</span>
+          {isEditingDate ? (
+            <div className="flex items-center gap-2 flex-1">
+              <input
+                type="datetime-local"
+                value={tempDate}
+                onChange={(e) => setTempDate(e.target.value)}
+                className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                autoFocus
+              />
+              <button
+                onClick={() => {
+                  onUpdateEventDate(event, tempDate)
+                  setIsEditingDate(false)
+                }}
+                className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setIsEditingDate(false)}
+                className="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <span
+              onClick={() => {
+                const date = new Date(event.scheduledDate)
+                const formatted = date.toISOString().slice(0, 16)
+                setTempDate(formatted)
+                setIsEditingDate(true)
+              }}
+              className="cursor-pointer hover:text-blue-400 transition-colors"
+            >
+              {formatDate(event.scheduledDate)}
+            </span>
+          )}
         </div>
         {event.duration && (
           <div className="flex items-center gap-2">
@@ -686,15 +753,51 @@ function EventCard({
               <p className="text-sm text-white/90">{event.outcome}</p>
             </div>
           </div>
-          {event.nextSteps && (
-            <div className="flex items-start gap-2 mt-3 pt-3 border-t border-emerald-500/20">
-              <Target className="w-4 h-4 text-emerald-400 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-emerald-300 mb-1">Next Steps</p>
-                <p className="text-sm text-white/90">{event.nextSteps}</p>
-              </div>
-            </div>
-          )}
+          {event.nextSteps && (() => {
+            try {
+              const steps: NextStep[] = JSON.parse(event.nextSteps)
+              if (steps.length === 0) return null
+              return (
+                <div className="mt-3 pt-3 border-t border-emerald-500/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-emerald-400" />
+                    <p className="text-xs font-medium text-emerald-300">Next Steps</p>
+                    {event.nextStepsDueDate && (
+                      <span className="ml-auto text-xs text-emerald-400">
+                        Due: {new Date(event.nextStepsDueDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-2 pl-6">
+                    {steps.map((step, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={step.completed}
+                          onChange={() => onToggleNextStep(event, index)}
+                          className="w-4 h-4 mt-0.5 rounded border-emerald-500/50 bg-slate-800 checked:bg-emerald-500 checked:border-emerald-500 cursor-pointer"
+                        />
+                        <span className={`text-sm flex-1 ${step.completed ? 'line-through text-white/50' : 'text-white/90'}`}>
+                          {step.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            } catch (e) {
+              // Fallback for invalid JSON
+              return (
+                <div className="flex items-start gap-2 mt-3 pt-3 border-t border-emerald-500/20">
+                  <Target className="w-4 h-4 text-emerald-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-emerald-300 mb-1">Next Steps</p>
+                    <p className="text-sm text-white/90">{event.nextSteps}</p>
+                  </div>
+                </div>
+              )
+            }
+          })()}
         </div>
       )}
 
@@ -955,7 +1058,7 @@ function EventModal({
 
 
 // Outcome Modal Component
-function OutcomeModal({ event, outcomeData, setOutcomeData, onSubmit, onClose }: any) {
+function OutcomeModal({ event, outcomeData, setOutcomeData, nextStepInput, setNextStepInput, onSubmit, onClose }: any) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1001,16 +1104,74 @@ function OutcomeModal({ event, outcomeData, setOutcomeData, onSubmit, onClose }:
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              What are the next steps?
+              Next Steps (Optional)
             </label>
-            <textarea
-              value={outcomeData.nextSteps}
-              onChange={(e) => setOutcomeData({ ...outcomeData, nextSteps: e.target.value })}
-              rows={3}
-              placeholder="e.g., Prepare for technical round, Send thank you email, Follow up next week, Add them on LinkedIn..."
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-            />
+            <div className="space-y-2">
+              {outcomeData.nextSteps.map((step: NextStep, index: number) => (
+                <div key={index} className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg">
+                  <span className="text-slate-400">•</span>
+                  <span className="flex-1 text-slate-200 text-sm">{step.text}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSteps = outcomeData.nextSteps.filter((_: NextStep, i: number) => i !== index)
+                      setOutcomeData({ ...outcomeData, nextSteps: newSteps })
+                    }}
+                    className="text-slate-400 hover:text-red-400 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={nextStepInput}
+                  onChange={(e) => setNextStepInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && nextStepInput.trim()) {
+                      setOutcomeData({
+                        ...outcomeData,
+                        nextSteps: [...outcomeData.nextSteps, { text: nextStepInput.trim(), completed: false }]
+                      })
+                      setNextStepInput('')
+                    }
+                  }}
+                  placeholder="Add a next step (press Enter)"
+                  className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (nextStepInput.trim()) {
+                      setOutcomeData({
+                        ...outcomeData,
+                        nextSteps: [...outcomeData.nextSteps, { text: nextStepInput.trim(), completed: false }]
+                      })
+                      setNextStepInput('')
+                    }
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
           </div>
+
+          {outcomeData.nextSteps.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Due Date for Next Steps
+              </label>
+              <input
+                type="date"
+                value={outcomeData.nextStepsDueDate}
+                onChange={(e) => setOutcomeData({ ...outcomeData, nextStepsDueDate: e.target.value })}
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              />
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <button

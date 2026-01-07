@@ -14,6 +14,12 @@ interface Contact {
   position?: string
   status: string
   canRefer: boolean
+  isReferring: boolean
+  hasReferred: boolean
+  linkedinRequestSentAt?: string
+  linkedinConnectedAt?: string
+  referralRequestedAt?: string
+  referralCompletedAt?: string
   company: {
     id: string
     name: string
@@ -55,6 +61,9 @@ export default function ContactsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
+
+  // Tab state for categorizing contacts
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'connected' | 'referring' | 'referred'>('all')
 
   // Search and Filter states
   const [searchTerm, setSearchTerm] = useState('')
@@ -210,6 +219,18 @@ export default function ContactsPage() {
   // Filtered contacts
   const filteredContacts = useMemo(() => {
     return contacts.filter(contact => {
+      // Tab filter
+      let matchesTab: boolean = true
+      if (activeTab === 'pending') {
+        matchesTab = contact.status === 'REQUEST_SENT' && !contact.linkedinConnectedAt
+      } else if (activeTab === 'connected') {
+        matchesTab = (contact.status === 'CONNECTED' || !!contact.linkedinConnectedAt) && !(contact.isReferring ?? false) && !(contact.hasReferred ?? false)
+      } else if (activeTab === 'referring') {
+        matchesTab = contact.isReferring === true
+      } else if (activeTab === 'referred') {
+        matchesTab = contact.hasReferred === true
+      }
+
       // Search filter
       const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         contact.company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -226,9 +247,18 @@ export default function ContactsPage() {
         (canReferFilter === 'yes' && contact.canRefer) ||
         (canReferFilter === 'no' && !contact.canRefer)
 
-      return matchesSearch && matchesStatus && matchesCompany && matchesCanRefer
+      return matchesTab && matchesSearch && matchesStatus && matchesCompany && matchesCanRefer
     })
-  }, [contacts, searchTerm, statusFilter, companyFilter, canReferFilter])
+  }, [contacts, activeTab, searchTerm, statusFilter, companyFilter, canReferFilter])
+
+  // Tab counts
+  const tabCounts = useMemo(() => ({
+    all: contacts.length,
+    pending: contacts.filter(c => c.status === 'REQUEST_SENT' && !c.linkedinConnectedAt).length,
+    connected: contacts.filter(c => (c.status === 'CONNECTED' || c.linkedinConnectedAt) && !c.isReferring && !c.hasReferred).length,
+    referring: contacts.filter(c => c.isReferring).length,
+    referred: contacts.filter(c => c.hasReferred).length,
+  }), [contacts])
 
   if (loading) {
     return (
@@ -279,6 +309,33 @@ export default function ContactsPage() {
               <Plus className="w-5 h-5" />
               Add Contact
             </motion.button>
+          </div>
+
+          {/* Status Tabs */}
+          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+            {[
+              { key: 'all', label: 'All Contacts', count: tabCounts.all, gradient: 'from-slate-600 to-slate-700' },
+              { key: 'pending', label: 'Pending Request', count: tabCounts.pending, gradient: 'from-amber-600 to-orange-700' },
+              { key: 'connected', label: 'Connected', count: tabCounts.connected, gradient: 'from-blue-600 to-blue-700' },
+              { key: 'referring', label: 'Referring Me', count: tabCounts.referring, gradient: 'from-purple-600 to-purple-700' },
+              { key: 'referred', label: 'Successfully Referred', count: tabCounts.referred, gradient: 'from-emerald-600 to-teal-700' },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={cn(
+                  'px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap',
+                  activeTab === tab.key
+                    ? `bg-gradient-to-r ${tab.gradient} text-white shadow-lg`
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                )}
+              >
+                <span>{tab.label}</span>
+                <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                  {tab.count}
+                </span>
+              </button>
+            ))}
           </div>
 
           {/* Search and Filters */}

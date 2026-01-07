@@ -76,9 +76,17 @@ model Contact {
   company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   position        String?
+  // Status: PENDING_REQUEST, REQUEST_SENT, CONNECTED, REFERRING, REFERRED
   status          String  @default("REQUEST_SENT")
 
   canRefer        Boolean        @default(false)
+  isReferring     Boolean        @default(false)   // Currently in referral process
+  hasReferred     Boolean        @default(false)   // Successfully referred
+
+  linkedinRequestSentAt DateTime?  // When LinkedIn request was sent
+  linkedinConnectedAt   DateTime?  // When they accepted
+  referralRequestedAt   DateTime?  // When you asked for referral
+  referralCompletedAt   DateTime?  // When they referred you
 
   initialContactDate DateTime    @default(now())
   lastInteractionDate DateTime?
@@ -96,6 +104,8 @@ model Contact {
   @@index([companyId])
   @@index([status])
   @@index([canRefer])
+  @@index([isReferring])
+  @@index([hasReferred])
 }
 
 model Interaction {
