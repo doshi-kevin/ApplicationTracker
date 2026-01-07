@@ -32,6 +32,9 @@ interface Contact {
 interface Company {
   id: string
   name: string
+  website?: string
+  careersUrl?: string
+  notes?: string
 }
 
 const CONTACT_STATUSES = [
@@ -62,8 +65,17 @@ export default function ContactsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
 
+  // Company modal state
+  const [showCompanyModal, setShowCompanyModal] = useState(false)
+  const [companyFormData, setCompanyFormData] = useState({
+    name: '',
+    website: '',
+    careersUrl: '',
+    notes: '',
+  })
+
   // Tab state for categorizing contacts
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'connected' | 'referring'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'connected' | 'referring' | 'messaged'>('all')
 
   // Search and Filter states
   const [searchTerm, setSearchTerm] = useState('')
@@ -105,6 +117,39 @@ export default function ContactsPage() {
       setCompanies(data)
     } catch (error) {
       console.error('Error fetching companies:', error)
+    }
+  }
+
+  const handleCreateCompany = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!companyFormData.name.trim()) return
+
+    try {
+      const response = await fetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: companyFormData.name.trim(),
+          website: companyFormData.website.trim() || null,
+          careersUrl: companyFormData.careersUrl.trim() || null,
+          notes: companyFormData.notes.trim() || null,
+        }),
+      })
+
+      if (response.ok) {
+        const newCompany = await response.json()
+        setCompanies([...companies, newCompany])
+        setFormData({ ...formData, companyId: newCompany.id })
+        setCompanyFormData({
+          name: '',
+          website: '',
+          careersUrl: '',
+          notes: '',
+        })
+        setShowCompanyModal(false)
+      }
+    } catch (error) {
+      console.error('Error creating company:', error)
     }
   }
 
@@ -224,7 +269,9 @@ export default function ContactsPage() {
       if (activeTab === 'pending') {
         matchesTab = contact.status === 'REQUEST_SENT' && !contact.linkedinConnectedAt
       } else if (activeTab === 'connected') {
-        matchesTab = (contact.status === 'CONNECTED' || !!contact.linkedinConnectedAt) && contact.status !== 'WILL_REFER'
+        matchesTab = (contact.status === 'CONNECTED' || !!contact.linkedinConnectedAt) && contact.status !== 'WILL_REFER' && contact.status !== 'MESSAGED'
+      } else if (activeTab === 'messaged') {
+        matchesTab = contact.status === 'MESSAGED' || contact.status === 'REPLIED' || contact.status === 'MEETING_SCHEDULED'
       } else if (activeTab === 'referring') {
         // Show contacts with status "WILL_REFER" or isReferring flag
         matchesTab = contact.status === 'WILL_REFER' || contact.isReferring === true
@@ -254,7 +301,8 @@ export default function ContactsPage() {
   const tabCounts = useMemo(() => ({
     all: contacts.length,
     pending: contacts.filter(c => c.status === 'REQUEST_SENT' && !c.linkedinConnectedAt).length,
-    connected: contacts.filter(c => (c.status === 'CONNECTED' || c.linkedinConnectedAt) && c.status !== 'WILL_REFER').length,
+    connected: contacts.filter(c => (c.status === 'CONNECTED' || c.linkedinConnectedAt) && c.status !== 'WILL_REFER' && c.status !== 'MESSAGED').length,
+    messaged: contacts.filter(c => c.status === 'MESSAGED' || c.status === 'REPLIED' || c.status === 'MEETING_SCHEDULED').length,
     referring: contacts.filter(c => c.status === 'WILL_REFER' || c.isReferring).length,
   }), [contacts])
 
@@ -315,6 +363,7 @@ export default function ContactsPage() {
               { key: 'all', label: 'All Contacts', count: tabCounts.all, gradient: 'from-slate-600 to-slate-700' },
               { key: 'pending', label: 'Pending Request', count: tabCounts.pending, gradient: 'from-amber-600 to-orange-700' },
               { key: 'connected', label: 'Connected', count: tabCounts.connected, gradient: 'from-blue-600 to-blue-700' },
+              { key: 'messaged', label: 'Messaged', count: tabCounts.messaged, gradient: 'from-purple-600 to-violet-700' },
               { key: 'referring', label: 'Will Refer', count: tabCounts.referring, gradient: 'from-emerald-600 to-teal-700' },
             ].map(tab => (
               <button
@@ -580,7 +629,16 @@ export default function ContactsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-300 mb-2">Company *</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-semibold text-slate-300">Company *</label>
+                        <button
+                          type="button"
+                          onClick={() => setShowCompanyModal(true)}
+                          className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          + Add Company
+                        </button>
+                      </div>
                       <select
                         value={formData.companyId}
                         onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
@@ -676,6 +734,119 @@ export default function ContactsPage() {
                     className="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all"
                   >
                     {editingContact ? 'Save Changes' : 'Add Contact'}
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Company Modal */}
+      <AnimatePresence>
+        {showCompanyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowCompanyModal(false)
+              setCompanyFormData({
+                name: '',
+                website: '',
+                careersUrl: '',
+                notes: '',
+              })
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+            >
+              <div className="p-6 border-b border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+                  Add New Company
+                </h2>
+              </div>
+
+              <form onSubmit={handleCreateCompany} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Company Name *</label>
+                    <input
+                      type="text"
+                      value={companyFormData.name}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, name: e.target.value })}
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                      placeholder="e.g., Google, Microsoft, Amazon"
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Website</label>
+                    <input
+                      type="url"
+                      value={companyFormData.website}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, website: e.target.value })}
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Careers Page</label>
+                    <input
+                      type="url"
+                      value={companyFormData.careersUrl}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, careersUrl: e.target.value })}
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500"
+                      placeholder="https://example.com/careers"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Notes</label>
+                    <textarea
+                      value={companyFormData.notes}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, notes: e.target.value })}
+                      className="w-full px-4 py-3 text-sm bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500 resize-none"
+                      rows={4}
+                      placeholder="Why are you interested in this company? Any contacts or insights..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-white/10">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={() => {
+                      setShowCompanyModal(false)
+                      setCompanyFormData({
+                        name: '',
+                        website: '',
+                        careersUrl: '',
+                        notes: '',
+                      })
+                    }}
+                    className="px-6 py-3 text-sm font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className="px-6 py-3 text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all"
+                  >
+                    Create Company
                   </motion.button>
                 </div>
               </form>
