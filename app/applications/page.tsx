@@ -28,6 +28,9 @@ import { cn } from '@/lib/utils'
 interface Company {
   id: string
   name: string
+  website?: string
+  careersUrl?: string
+  notes?: string
 }
 
 interface Contact {
@@ -93,7 +96,12 @@ export default function ApplicationsPage() {
 
   const [showCompanyModal, setShowCompanyModal] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
-  const [companyFormData, setCompanyFormData] = useState({ name: '' })
+  const [companyFormData, setCompanyFormData] = useState({
+    name: '',
+    website: '',
+    careersUrl: '',
+    notes: '',
+  })
   const [companySearch, setCompanySearch] = useState('')
   const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null)
 
@@ -166,14 +174,24 @@ export default function ApplicationsPage() {
       const response = await fetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyFormData.name.trim() }),
+        body: JSON.stringify({
+          name: companyFormData.name.trim(),
+          website: companyFormData.website.trim() || null,
+          careersUrl: companyFormData.careersUrl.trim() || null,
+          notes: companyFormData.notes.trim() || null,
+        }),
       })
 
       if (response.ok) {
         const newCompany = await response.json()
         setCompanies([...companies, newCompany])
         setFormData({ ...formData, companyId: newCompany.id })
-        setCompanyFormData({ name: '' })
+        setCompanyFormData({
+          name: '',
+          website: '',
+          careersUrl: '',
+          notes: '',
+        })
         setShowCompanyModal(false)
       }
     } catch (error) {
@@ -189,12 +207,22 @@ export default function ApplicationsPage() {
       const response = await fetch(`/api/companies/${editingCompany.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyFormData.name.trim() }),
+        body: JSON.stringify({
+          name: companyFormData.name.trim(),
+          website: companyFormData.website.trim() || null,
+          careersUrl: companyFormData.careersUrl.trim() || null,
+          notes: companyFormData.notes.trim() || null,
+        }),
       })
 
       if (response.ok) {
         await fetchData()
-        setCompanyFormData({ name: '' })
+        setCompanyFormData({
+          name: '',
+          website: '',
+          careersUrl: '',
+          notes: '',
+        })
         setEditingCompany(null)
         setShowCompanyModal(false)
       }
@@ -227,10 +255,20 @@ export default function ApplicationsPage() {
   const openCompanyModal = (company?: Company) => {
     if (company) {
       setEditingCompany(company)
-      setCompanyFormData({ name: company.name })
+      setCompanyFormData({
+        name: company.name,
+        website: company.website || '',
+        careersUrl: company.careersUrl || '',
+        notes: company.notes || '',
+      })
     } else {
       setEditingCompany(null)
-      setCompanyFormData({ name: '' })
+      setCompanyFormData({
+        name: '',
+        website: '',
+        careersUrl: '',
+        notes: '',
+      })
     }
     setShowCompanyModal(true)
   }
@@ -1056,7 +1094,12 @@ export default function ApplicationsPage() {
             onClick={() => {
               setShowCompanyModal(false)
               setEditingCompany(null)
-              setCompanyFormData({ name: '' })
+              setCompanyFormData({
+                name: '',
+                website: '',
+                careersUrl: '',
+                notes: '',
+              })
             }}
           >
             <motion.div
@@ -1064,7 +1107,7 @@ export default function ApplicationsPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-md w-full"
+              className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
             >
               <div className="p-6 border-b border-white/10">
                 <h2 className="text-xl font-bold text-white">
@@ -1072,27 +1115,67 @@ export default function ApplicationsPage() {
                 </h2>
               </div>
 
-              <form onSubmit={editingCompany ? handleEditCompany : handleCreateCompany} className="p-6">
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-300 mb-3">Company Name *</label>
-                  <input
-                    type="text"
-                    value={companyFormData.name}
-                    onChange={(e) => setCompanyFormData({ name: e.target.value })}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Google, Microsoft, etc."
-                    required
-                    autoFocus
-                  />
+              <form onSubmit={editingCompany ? handleEditCompany : handleCreateCompany} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Company Name *</label>
+                    <input
+                      type="text"
+                      value={companyFormData.name}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, name: e.target.value })}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., Google, Microsoft, Amazon"
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Website</label>
+                    <input
+                      type="url"
+                      value={companyFormData.website}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, website: e.target.value })}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Careers Page</label>
+                    <input
+                      type="url"
+                      value={companyFormData.careersUrl}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, careersUrl: e.target.value })}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="https://example.com/careers"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Notes</label>
+                    <textarea
+                      value={companyFormData.notes}
+                      onChange={(e) => setCompanyFormData({ ...companyFormData, notes: e.target.value })}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      rows={4}
+                      placeholder="Why are you interested in this company? Any contacts or insights..."
+                    />
+                  </div>
                 </div>
 
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end gap-4 mt-6 pt-6 border-t border-white/10">
                   <button
                     type="button"
                     onClick={() => {
                       setShowCompanyModal(false)
                       setEditingCompany(null)
-                      setCompanyFormData({ name: '' })
+                      setCompanyFormData({
+                        name: '',
+                        website: '',
+                        careersUrl: '',
+                        notes: '',
+                      })
                     }}
                     className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold rounded-xl transition-all"
                   >
