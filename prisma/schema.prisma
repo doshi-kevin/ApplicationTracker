@@ -274,5 +274,44 @@ model LearningItem {
   @@index([category])
 }
 
+// Resume Management Models
+
+model ResumeTemplate {
+  id              String         @id @default(cuid())
+
+  // Template info
+  name            String         // e.g., "Machine Learning Intern", "SDE Intern"
+  description     String?
+
+  // Sections of this resume template
+  sections        ResumeSection[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([name])
+}
+
+model ResumeSection {
+  id              String         @id @default(cuid())
+
+  templateId      String
+  template        ResumeTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  // Section info
+  name            String         // e.g., "Skills", "Experience", "Education", "Projects"
+  order           Int            // Order in which sections appear
+  latexCode       String         @db.Text // LaTeX code for this section
+
+  notes           String?        // Optional notes about this section
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([templateId])
+  @@index([name])
+  @@unique([templateId, name]) // Prevent duplicate section names in same template
+}
+
 // Enums
 

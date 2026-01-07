@@ -14,7 +14,8 @@ import {
   Zap,
   ArrowRight,
   Sparkles,
-  Plus
+  Plus,
+  FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -116,11 +117,18 @@ export default function Dashboard() {
       gradient: 'from-emerald-600 to-teal-600'
     },
     {
-      title: 'Schedule Interview',
-      description: 'Add an upcoming interview',
-      href: '/interviews',
+      title: 'Resume Templates',
+      description: 'Manage your resume versions',
+      href: '/resumes',
+      icon: FileText,
+      gradient: 'from-purple-600 to-blue-600'
+    },
+    {
+      title: 'Schedule Event',
+      description: 'Add an upcoming event',
+      href: '/events',
       icon: Calendar,
-      gradient: 'from-purple-600 to-pink-600'
+      gradient: 'from-amber-600 to-orange-600'
     },
   ]
 

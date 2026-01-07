@@ -45,6 +45,66 @@ export async function GET(request: NextRequest) {
 // POST create new application
 export async function POST(request: NextRequest) {
   try {
+    const contentType = request.headers.get('content-type')
+
+    // Handle JSON requests (Quick Add)
+    if (contentType?.includes('application/json')) {
+      const body = await request.json()
+
+      const {
+        companyId,
+        positionTitle,
+        description,
+        jobPostingUrl,
+        status,
+        resumePath,
+        coverLetterPath,
+        salaryMin,
+        salaryMax,
+        salaryCurrency,
+        isReferred,
+        referredById,
+        applicationDeadline,
+        notes,
+      } = body
+
+      // Validation
+      if (!companyId || !positionTitle || !resumePath) {
+        return NextResponse.json(
+          { error: 'Company, position title, and resume path are required' },
+          { status: 400 }
+        )
+      }
+
+      // Create application with string paths
+      const application = await prisma.application.create({
+        data: {
+          companyId,
+          positionTitle,
+          description: description || null,
+          jobPostingUrl: jobPostingUrl || null,
+          status: status || 'NOT_APPLIED',
+          appliedDate: status === 'APPLIED' ? new Date() : null,
+          salaryMin: salaryMin ? parseInt(salaryMin) : null,
+          salaryMax: salaryMax ? parseInt(salaryMax) : null,
+          salaryCurrency: salaryCurrency || 'USD',
+          resumePath,
+          coverLetterPath: coverLetterPath || null,
+          isReferred: isReferred || false,
+          referredById: referredById || null,
+          applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null,
+          notes: notes || null,
+        },
+        include: {
+          company: true,
+          referredByContact: true,
+        },
+      })
+
+      return NextResponse.json(application, { status: 201 })
+    }
+
+    // Handle FormData requests (Full Form with file uploads)
     const formData = await request.formData()
 
     const companyId = formData.get('companyId') as string
