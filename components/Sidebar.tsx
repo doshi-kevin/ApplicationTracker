@@ -9,6 +9,7 @@ const navigation = [
   { name: 'Applications', href: '/applications', icon: '📝' },
   { name: 'Contacts', href: '/contacts', icon: '👥' },
   { name: 'Events', href: '/events', icon: '📅' },
+  { name: 'Reminders', href: '/reminders', icon: '⚡' },
   { name: 'Resumes', href: '/resumes', icon: '📄' },
   { name: 'Learning', href: '/learning', icon: '🎓' },
   { name: 'Email Templates', href: '/email-templates', icon: '✉️' },

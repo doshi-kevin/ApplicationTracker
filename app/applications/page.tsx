@@ -409,6 +409,13 @@ export default function ApplicationsPage() {
             notes: newCompanyDetails.notes || null,
           }),
         })
+
+        if (!companyRes.ok) {
+          const errorData = await companyRes.json()
+          alert(`Failed to create company: ${errorData.error || 'Unknown error'}`)
+          return
+        }
+
         const newCompany = await companyRes.json()
         finalCompanyId = newCompany.id
       }
@@ -427,25 +434,33 @@ export default function ApplicationsPage() {
         }),
       })
 
-      if (appRes.ok) {
-        await fetchData()
-        setShowQuickAddModal(false)
-        setShowCompanyDetailsStep(false)
-        setQuickAddData({
-          companyName: '',
-          positionTitle: '',
-          jobPostingUrl: '',
-          resumePath: '',
-          coverLetterPath: '',
-        })
-        setNewCompanyDetails({
-          website: '',
-          careersUrl: '',
-          notes: '',
-        })
+      if (!appRes.ok) {
+        const errorData = await appRes.json()
+        alert(`Failed to create application: ${errorData.error || 'Unknown error'}`)
+        return
       }
+
+      // Success! Refresh data and close modal
+      await fetchData()
+      setShowQuickAddModal(false)
+      setShowCompanyDetailsStep(false)
+      setQuickAddData({
+        companyName: '',
+        positionTitle: '',
+        jobPostingUrl: '',
+        resumePath: '',
+        coverLetterPath: '',
+      })
+      setNewCompanyDetails({
+        website: '',
+        careersUrl: '',
+        notes: '',
+      })
+
+      alert('Application added successfully!')
     } catch (error) {
       console.error('Error quick adding application:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Failed to add application'}`)
     } finally {
       setSubmitting(false)
     }
