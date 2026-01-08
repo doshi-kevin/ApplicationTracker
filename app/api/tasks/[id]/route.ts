@@ -44,11 +44,18 @@ export async function PATCH(
     const shouldSetCompletedAt = body.isCompleted === true
     const shouldClearCompletedAt = body.isCompleted === false
 
+    // Parse date and set to noon to avoid timezone issues
+    let parsedDate
+    if (body.dueDate) {
+      parsedDate = new Date(body.dueDate)
+      parsedDate.setHours(12, 0, 0, 0)
+    }
+
     const task = await prisma.task.update({
       where: { id },
       data: {
         ...body,
-        ...(body.dueDate && { dueDate: new Date(body.dueDate) }),
+        ...(parsedDate && { dueDate: parsedDate }),
         ...(shouldSetCompletedAt && !body.completedAt && {
           completedAt: new Date(),
         }),

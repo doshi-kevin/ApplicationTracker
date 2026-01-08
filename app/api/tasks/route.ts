@@ -60,11 +60,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Parse date and set to noon to avoid timezone issues
+    const date = new Date(dueDate)
+    date.setHours(12, 0, 0, 0)
+
     const task = await prisma.task.create({
       data: {
         title,
         notes: notes || null,
-        dueDate: new Date(dueDate),
+        dueDate: date,
         parentTaskId: parentTaskId || null,
       },
       include: {

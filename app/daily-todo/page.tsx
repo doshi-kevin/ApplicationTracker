@@ -108,11 +108,19 @@ export default function DailyTodoPage() {
     }
   }
 
+  // Helper to format date for input (YYYY-MM-DD) without timezone shift
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   const openAddModal = (parentTask?: Task, dueDate?: Date) => {
     setFormData({
       title: '',
       notes: '',
-      dueDate: dueDate ? dueDate.toISOString().split('T')[0] : today.toISOString().split('T')[0],
+      dueDate: formatDateForInput(dueDate || today),
       parentTaskId: parentTask?.id || '',
     })
     setEditingTask(null)
@@ -123,7 +131,7 @@ export default function DailyTodoPage() {
     setFormData({
       title: task.title,
       notes: task.notes || '',
-      dueDate: new Date(task.dueDate).toISOString().split('T')[0],
+      dueDate: formatDateForInput(new Date(task.dueDate)),
       parentTaskId: '',
     })
     setEditingTask(task)
@@ -131,14 +139,11 @@ export default function DailyTodoPage() {
   }
 
   const filterTasksByDate = (date: Date) => {
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
+    const targetDate = formatDateForInput(date)
 
     return tasks.filter((task) => {
-      const taskDate = new Date(task.dueDate)
-      return taskDate >= startOfDay && taskDate <= endOfDay
+      const taskDate = formatDateForInput(new Date(task.dueDate))
+      return taskDate === targetDate
     })
   }
 
