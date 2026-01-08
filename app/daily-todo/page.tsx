@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Check, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, StickyNote } from 'lucide-react'
+import { Plus, Check, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, StickyNote, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Task {
@@ -18,6 +18,7 @@ interface Task {
 export default function DailyTodoPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [viewDate, setViewDate] = useState<Date | null>(null) // For viewing tasks on specific dates
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [formData, setFormData] = useState({
@@ -239,7 +240,7 @@ export default function DailyTodoPage() {
                       onClick={() => {
                         if (day) {
                           const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day)
-                          openAddModal(undefined, date)
+                          setViewDate(date)
                         }
                       }}
                       disabled={!day}
@@ -248,7 +249,8 @@ export default function DailyTodoPage() {
                         day
                           ? 'bg-white/5 hover:bg-white/10 text-white'
                           : 'bg-transparent text-transparent cursor-default',
-                        today && 'bg-blue-500/20 border-2 border-blue-500'
+                        today && 'bg-blue-500/20 border-2 border-blue-500',
+                        viewDate && day === viewDate.getDate() && selectedDate.getMonth() === viewDate.getMonth() && selectedDate.getFullYear() === viewDate.getFullYear() && 'bg-purple-500/30 border-2 border-purple-500'
                       )}
                     >
                       {day}
@@ -262,67 +264,110 @@ export default function DailyTodoPage() {
             </div>
           </div>
 
-          {/* Today & Tomorrow Tasks */}
+          {/* Tasks View */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Today's Tasks */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <CalendarIcon className="w-6 h-6 text-blue-400" />
-                    Today's Tasks
-                  </h2>
-                  <p className="text-sm text-slate-400 mt-1">
-                    {today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                  </p>
+            {viewDate ? (
+              /* Selected Date Tasks */
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <CalendarIcon className="w-6 h-6 text-purple-400" />
+                      Tasks for {viewDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </h2>
+                    <p className="text-sm text-slate-400 mt-1">
+                      {viewDate.toLocaleDateString('en-US', { weekday: 'long' })}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setViewDate(null)}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-semibold transition-all"
+                    >
+                      <X className="w-5 h-5" />
+                      Close
+                    </button>
+                    <button
+                      onClick={() => openAddModal(undefined, viewDate)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-semibold transition-all"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Add Task
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => openAddModal(undefined, today)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-semibold transition-all"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Task
-                </button>
+
+                <TaskList
+                  tasks={filterTasksByDate(viewDate)}
+                  onToggleComplete={handleToggleComplete}
+                  onDelete={handleDelete}
+                  onEdit={openEditModal}
+                  onAddSubtask={openAddModal}
+                />
               </div>
+            ) : (
+              <>
+                {/* Today's Tasks */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <CalendarIcon className="w-6 h-6 text-blue-400" />
+                        Today's Tasks
+                      </h2>
+                      <p className="text-sm text-slate-400 mt-1">
+                        {today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => openAddModal(undefined, today)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-semibold transition-all"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Add Task
+                    </button>
+                  </div>
 
-              <TaskList
-                tasks={todayTasks}
-                onToggleComplete={handleToggleComplete}
-                onDelete={handleDelete}
-                onEdit={openEditModal}
-                onAddSubtask={openAddModal}
-              />
-            </div>
-
-            {/* Tomorrow's Tasks */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <CalendarIcon className="w-6 h-6 text-purple-400" />
-                    Tomorrow's Tasks
-                  </h2>
-                  <p className="text-sm text-slate-400 mt-1">
-                    {tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                  </p>
+                  <TaskList
+                    tasks={todayTasks}
+                    onToggleComplete={handleToggleComplete}
+                    onDelete={handleDelete}
+                    onEdit={openEditModal}
+                    onAddSubtask={openAddModal}
+                  />
                 </div>
-                <button
-                  onClick={() => openAddModal(undefined, tomorrow)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-semibold transition-all"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Task
-                </button>
-              </div>
 
-              <TaskList
-                tasks={tomorrowTasks}
-                onToggleComplete={handleToggleComplete}
-                onDelete={handleDelete}
-                onEdit={openEditModal}
-                onAddSubtask={openAddModal}
-              />
-            </div>
+                {/* Tomorrow's Tasks */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <CalendarIcon className="w-6 h-6 text-purple-400" />
+                        Tomorrow's Tasks
+                      </h2>
+                      <p className="text-sm text-slate-400 mt-1">
+                        {tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => openAddModal(undefined, tomorrow)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-semibold transition-all"
+                    >
+                      <Plus className="w-5 h-5" />
+                      Add Task
+                    </button>
+                  </div>
+
+                  <TaskList
+                    tasks={tomorrowTasks}
+                    onToggleComplete={handleToggleComplete}
+                    onDelete={handleDelete}
+                    onEdit={openEditModal}
+                    onAddSubtask={openAddModal}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
