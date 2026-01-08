@@ -60,17 +60,13 @@ export default function Sidebar() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{
-          x: isOpen ? 0 : '-100%',
-        }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      <aside
         className={`
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           fixed lg:static inset-y-0 left-0 z-40
           w-64 bg-[#0f0f0f] border-r border-[#2a2a2a]
           flex flex-col
-          lg:translate-x-0
+          transition-transform duration-300 ease-in-out
         `}
       >
         {/* Header */}
@@ -110,7 +106,7 @@ export default function Sidebar() {
             <p className="mt-1">v1.0.0</p>
           </div>
         </div>
-      </motion.aside>
+      </aside>
     </>
   )
 }
