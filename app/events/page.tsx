@@ -27,6 +27,17 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// Helper function to convert date to local datetime-local format without timezone shift
+function toLocalDateTimeString(date: Date | string): string {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 interface Company {
   id: string
   name: string
@@ -338,7 +349,7 @@ export default function EventsPage() {
       contactId: event.contactId || '',
       title: event.title,
       description: event.description || '',
-      scheduledDate: new Date(event.scheduledDate).toISOString().slice(0, 16),
+      scheduledDate: toLocalDateTimeString(event.scheduledDate),
       duration: event.duration?.toString() || '',
       round: event.round?.toString() || '',
       interviewers: event.interviewers || '',
@@ -703,8 +714,7 @@ function EventCard({
           ) : (
             <span
               onClick={() => {
-                const date = new Date(event.scheduledDate)
-                const formatted = date.toISOString().slice(0, 16)
+                const formatted = toLocalDateTimeString(event.scheduledDate)
                 setTempDate(formatted)
                 setIsEditingDate(true)
               }}

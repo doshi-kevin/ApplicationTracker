@@ -221,6 +221,26 @@ model Reminder {
   @@index([isCompleted])
 }
 
+model Task {
+  id              String         @id @default(cuid())
+  title           String
+  notes           String?
+  dueDate         DateTime
+  isCompleted     Boolean        @default(false)
+  completedAt     DateTime?
+
+  parentTaskId    String?
+  parentTask      Task?          @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks        Task[]         @relation("TaskSubtasks")
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([dueDate])
+  @@index([isCompleted])
+  @@index([parentTaskId])
+}
+
 model EmailTemplate {
   id          String   @id @default(cuid())
   name        String
