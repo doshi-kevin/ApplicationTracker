@@ -20,6 +20,7 @@ interface Contact {
   linkedinConnectedAt?: string
   referralRequestedAt?: string
   referralCompletedAt?: string
+  messagedDate?: string
   company: {
     id: string
     name: string
@@ -532,6 +533,13 @@ export default function ContactsPage() {
                         {contact._count.referredApplications > 0 && (
                           <span className="text-sm text-purple-400 bg-purple-500/20 px-3 py-1.5 rounded-lg border border-purple-500/30">
                             {contact._count.referredApplications} referral{contact._count.referredApplications > 1 ? 's' : ''}
+                          </span>
+                        )}
+
+                        {/* Messaged Date */}
+                        {contact.messagedDate && (
+                          <span className="text-sm text-blue-400 bg-blue-500/20 px-3 py-1.5 rounded-lg border border-blue-500/30">
+                            Messaged: {new Date(contact.messagedDate).toLocaleDateString()}
                           </span>
                         )}
                       </div>

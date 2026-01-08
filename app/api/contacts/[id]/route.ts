@@ -46,12 +46,20 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
 
+    // Set messagedDate if status is being changed to MESSAGED, REPLIED, or MEETING_SCHEDULED
+    const shouldSetMessagedDate =
+      body.status &&
+      ['MESSAGED', 'REPLIED', 'MEETING_SCHEDULED'].includes(body.status)
+
     const contact = await prisma.contact.update({
       where: { id },
       data: {
         ...body,
         ...(body.lastInteractionDate && {
           lastInteractionDate: new Date(body.lastInteractionDate),
+        }),
+        ...(shouldSetMessagedDate && !body.messagedDate && {
+          messagedDate: new Date(),
         }),
       },
       include: {

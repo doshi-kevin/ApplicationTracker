@@ -87,6 +87,7 @@ model Contact {
   linkedinConnectedAt   DateTime?  // When they accepted
   referralRequestedAt   DateTime?  // When you asked for referral
   referralCompletedAt   DateTime?  // When they referred you
+  messagedDate          DateTime?  // When contact was messaged
 
   initialContactDate DateTime    @default(now())
   lastInteractionDate DateTime?

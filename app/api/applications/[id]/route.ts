@@ -49,12 +49,18 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
 
+    // Set appliedDate if status is being changed to APPLIED
+    const shouldSetAppliedDate = body.status === 'APPLIED'
+
     const application = await prisma.application.update({
       where: { id },
       data: {
         ...body,
         ...(body.applicationDeadline && {
           applicationDeadline: new Date(body.applicationDeadline),
+        }),
+        ...(shouldSetAppliedDate && !body.appliedDate && {
+          appliedDate: new Date(),
         }),
       },
       include: {

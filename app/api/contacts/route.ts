@@ -65,6 +65,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Set messagedDate if status is MESSAGED, REPLIED, or MEETING_SCHEDULED
+    const shouldSetMessagedDate =
+      status && ['MESSAGED', 'REPLIED', 'MEETING_SCHEDULED'].includes(status)
+
     const contact = await prisma.contact.create({
       data: {
         name,
@@ -77,6 +81,7 @@ export async function POST(request: NextRequest) {
         canRefer: canRefer || false,
         notes,
         conversationNotes,
+        ...(shouldSetMessagedDate && { messagedDate: new Date() }),
       },
       include: {
         company: true,
