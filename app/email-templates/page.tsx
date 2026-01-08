@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ChevronRight, Edit2, Trash2, Mail, Copy, FileText, CheckCircle2, Sparkles } from 'lucide-react'
+import { Plus, ChevronRight, Edit2, Trash2, Mail, Copy, FileText, CheckCircle2, Sparkles, Search, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/components/ToastProvider'
 
 interface EmailTemplate {
   id: string
@@ -35,6 +36,7 @@ const categoryConfig: Record<string, { label: string; gradient: string; textColo
 }
 
 export default function EmailTemplatesPage() {
+  const { showToast } = useToast()
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
@@ -42,12 +44,22 @@ export default function EmailTemplatesPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null)
   const [copiedText, setCopiedText] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
 
   const [formData, setFormData] = useState({
     name: '',
     subject: '',
     body: '',
     category: 'CONNECTION_REQUEST',
+  })
+
+  const filteredTemplates = templates.filter((template) => {
+    const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         template.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         template.body.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = categoryFilter === 'all' || template.category === categoryFilter
+    return matchesSearch && matchesCategory
   })
 
   useEffect(() => {
@@ -84,13 +96,19 @@ export default function EmailTemplatesPage() {
       if (response.ok) {
         await fetchTemplates()
         closeModal()
+        showToast('success', editingTemplate ? 'Template updated successfully!' : 'Template created successfully!')
+      } else {
+        showToast('error', 'Failed to save template')
       }
     } catch (error) {
       console.error('Error saving template:', error)
+      showToast('error', 'An error occurred while saving')
     }
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this template?')) return
+
     try {
       setDeleteId(id)
       const response = await fetch(`/api/email-templates/${id}`, {
@@ -102,9 +120,13 @@ export default function EmailTemplatesPage() {
         if (selectedTemplate?.id === id) {
           setSelectedTemplate(null)
         }
+        showToast('success', 'Template deleted successfully!')
+      } else {
+        showToast('error', 'Failed to delete template')
       }
     } catch (error) {
       console.error('Error deleting template:', error)
+      showToast('error', 'An error occurred while deleting')
     } finally {
       setDeleteId(null)
     }
@@ -145,6 +167,7 @@ export default function EmailTemplatesPage() {
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text)
     setCopiedText(type)
+    showToast('success', 'Copied to clipboard!')
     setTimeout(() => setCopiedText(null), 2000)
   }
 
@@ -202,6 +225,37 @@ export default function EmailTemplatesPage() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search and Filter */}
+        {templates.length > 0 && (
+          <div className="mb-6 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="pl-12 pr-8 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer min-w-[200px]"
+              >
+                <option value="all" className="bg-slate-900">All Categories</option>
+                {TEMPLATE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat} className="bg-slate-900">
+                    {categoryConfig[cat]?.label || cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         {templates.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -210,17 +264,25 @@ export default function EmailTemplatesPage() {
           >
             <p className="text-slate-400 text-lg">No email templates yet. Create templates to save time!</p>
           </motion.div>
+        ) : filteredTemplates.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center"
+          >
+            <p className="text-slate-400 text-lg">No templates match your search.</p>
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Templates List */}
             <div className="lg:col-span-1">
               <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <Mail className="w-5 h-5 text-blue-400" />
-                Templates ({templates.length})
+                Templates ({filteredTemplates.length})
               </h2>
               <div className="space-y-3">
                 <AnimatePresence mode="popLayout">
-                  {templates.map((template, index) => (
+                  {filteredTemplates.map((template, index) => (
                     <motion.div
                       key={template.id}
                       initial={{ opacity: 0, y: 20 }}
