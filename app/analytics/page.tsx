@@ -274,7 +274,7 @@ export default function AnalyticsPage() {
               )
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Applications Timeline */}
