@@ -437,18 +437,6 @@ export default function CommandPalette({
       </AnimatePresence>
 
       {/* Floating hint when closed */}
-      {!isOpen && (
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 group hidden lg:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
-        >
-          <Command className="w-4 h-4" />
-          <span className="text-sm font-medium">Quick Actions</span>
-          <kbd className="px-2 py-1 bg-white/20 rounded text-xs">⌘K</kbd>
-        </motion.button>
-      )}
     </>
   )
 }
