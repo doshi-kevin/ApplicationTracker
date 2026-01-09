@@ -3,8 +3,35 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-export async function DELETE(
+export async function PATCH(
   request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const body = await request.json()
+
+    const experience = await prisma.experience.update({
+      where: { id },
+      data: {
+        company: body.company,
+        position: body.position,
+        location: body.location,
+        startDate: body.startDate,
+        endDate: body.endDate,
+        bulletPoints: body.bulletPoints,
+      }
+    })
+
+    return NextResponse.json(experience)
+  } catch (error) {
+    console.error('Error updating experience:', error)
+    return NextResponse.json({ error: 'Failed to update experience' }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

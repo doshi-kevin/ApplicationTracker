@@ -197,21 +197,32 @@ export default function ResumesBuilderPage() {
     try {
       const payload = {
         ...experienceForm,
-        resumeId: selectedResume.id,
         bulletPoints: JSON.stringify(experienceForm.bulletPoints.filter(b => b.trim()))
       }
 
-      const response = await fetch('/api/experiences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      let response
+      if (editingExperience) {
+        // Update existing experience
+        response = await fetch(`/api/experiences/${editingExperience.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+      } else {
+        // Create new experience
+        response = await fetch('/api/experiences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, resumeId: selectedResume.id })
+        })
+      }
 
       const responseData = await response.json()
 
       if (response.ok) {
         await fetchResumes()
         setShowExperienceModal(false)
+        setEditingExperience(null)
         setExperienceForm({
           company: '',
           position: '',
@@ -221,12 +232,12 @@ export default function ResumesBuilderPage() {
           bulletPoints: ['', '', '']
         })
       } else {
-        console.error('Failed to create experience:', responseData)
-        alert('Failed to create experience: ' + (responseData.error || 'Unknown error'))
+        console.error('Failed to save experience:', responseData)
+        alert('Failed to save experience: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
-      console.error('Error creating experience:', error)
-      alert('Error creating experience. Check console for details.')
+      console.error('Error saving experience:', error)
+      alert('Error saving experience. Check console for details.')
     }
   }
 
@@ -237,19 +248,33 @@ export default function ResumesBuilderPage() {
     }
 
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...projectForm,
-          resumeId: selectedResume.id,
-          bulletPoints: JSON.stringify(projectForm.bulletPoints.filter(b => b.trim()))
+      const payload = {
+        ...projectForm,
+        bulletPoints: JSON.stringify(projectForm.bulletPoints.filter(b => b.trim()))
+      }
+
+      let response
+      if (editingProject) {
+        // Update existing project
+        response = await fetch(`/api/projects/${editingProject.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         })
-      })
+      } else {
+        // Create new project
+        response = await fetch('/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, resumeId: selectedResume.id })
+        })
+      }
+
       const responseData = await response.json()
       if (response.ok) {
         await fetchResumes()
         setShowProjectModal(false)
+        setEditingProject(null)
         setProjectForm({
           name: '',
           description: '',
@@ -261,11 +286,11 @@ export default function ResumesBuilderPage() {
           bulletPoints: ['', '', '']
         })
       } else {
-        alert('Failed to create project: ' + (responseData.error || 'Unknown error'))
+        alert('Failed to save project: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
-      console.error('Error creating project:', error)
-      alert('Error creating project. Check console for details.')
+      console.error('Error saving project:', error)
+      alert('Error saving project. Check console for details.')
     }
   }
 
@@ -276,26 +301,40 @@ export default function ResumesBuilderPage() {
     }
 
     try {
-      const response = await fetch('/api/skills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...skillForm,
-          resumeId: selectedResume.id,
-          skills: JSON.stringify(skillForm.skills.filter(s => s.trim()))
+      const payload = {
+        ...skillForm,
+        skills: JSON.stringify(skillForm.skills.filter(s => s.trim()))
+      }
+
+      let response
+      if (editingSkill) {
+        // Update existing skill
+        response = await fetch(`/api/skills/${editingSkill.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         })
-      })
+      } else {
+        // Create new skill
+        response = await fetch('/api/skills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, resumeId: selectedResume.id })
+        })
+      }
+
       const responseData = await response.json()
       if (response.ok) {
         await fetchResumes()
         setShowSkillModal(false)
+        setEditingSkill(null)
         setSkillForm({ name: '', skills: [''] })
       } else {
-        alert('Failed to create skill: ' + (responseData.error || 'Unknown error'))
+        alert('Failed to save skill: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
-      console.error('Error creating skill category:', error)
-      alert('Error creating skill. Check console for details.')
+      console.error('Error saving skill category:', error)
+      alert('Error saving skill. Check console for details.')
     }
   }
 
@@ -306,21 +345,35 @@ export default function ResumesBuilderPage() {
     }
 
     try {
-      const response = await fetch('/api/education', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...educationForm,
-          resumeId: selectedResume.id,
-          achievements: educationForm.achievements.filter(a => a.trim()).length > 0
-            ? JSON.stringify(educationForm.achievements.filter(a => a.trim()))
-            : null
+      const payload = {
+        ...educationForm,
+        achievements: educationForm.achievements.filter(a => a.trim()).length > 0
+          ? JSON.stringify(educationForm.achievements.filter(a => a.trim()))
+          : null
+      }
+
+      let response
+      if (editingEducation) {
+        // Update existing education
+        response = await fetch(`/api/education/${editingEducation.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         })
-      })
+      } else {
+        // Create new education
+        response = await fetch('/api/education', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, resumeId: selectedResume.id })
+        })
+      }
+
       const responseData = await response.json()
       if (response.ok) {
         await fetchResumes()
         setShowEducationModal(false)
+        setEditingEducation(null)
         setEducationForm({
           school: '',
           degree: '',
@@ -332,11 +385,11 @@ export default function ResumesBuilderPage() {
           achievements: ['']
         })
       } else {
-        alert('Failed to create education: ' + (responseData.error || 'Unknown error'))
+        alert('Failed to save education: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
-      console.error('Error creating education:', error)
-      alert('Error creating education. Check console for details.')
+      console.error('Error saving education:', error)
+      alert('Error saving education. Check console for details.')
     }
   }
 
@@ -420,6 +473,59 @@ export default function ResumesBuilderPage() {
       console.error('Error deleting resume:', error)
       alert('Error deleting resume')
     }
+  }
+
+  // Edit handlers
+  const openEditExperience = (experience: Experience) => {
+    setEditingExperience(experience)
+    setExperienceForm({
+      company: experience.company,
+      position: experience.position,
+      location: experience.location || '',
+      startDate: experience.startDate,
+      endDate: experience.endDate || '',
+      bulletPoints: JSON.parse(experience.bulletPoints)
+    })
+    setShowExperienceModal(true)
+  }
+
+  const openEditProject = (project: Project) => {
+    setEditingProject(project)
+    setProjectForm({
+      name: project.name,
+      description: project.description || '',
+      technologies: project.technologies || '',
+      githubUrl: project.githubUrl || '',
+      liveUrl: project.liveUrl || '',
+      startDate: project.startDate || '',
+      endDate: project.endDate || '',
+      bulletPoints: JSON.parse(project.bulletPoints)
+    })
+    setShowProjectModal(true)
+  }
+
+  const openEditSkill = (skill: SkillCategory) => {
+    setEditingSkill(skill)
+    setSkillForm({
+      name: skill.name,
+      skills: JSON.parse(skill.skills)
+    })
+    setShowSkillModal(true)
+  }
+
+  const openEditEducation = (education: Education) => {
+    setEditingEducation(education)
+    setEducationForm({
+      school: education.school,
+      degree: education.degree,
+      field: education.field || '',
+      location: education.location || '',
+      startDate: education.startDate,
+      endDate: education.endDate || '',
+      gpa: education.gpa || '',
+      achievements: education.achievements ? JSON.parse(education.achievements) : ['']
+    })
+    setShowEducationModal(true)
   }
 
   if (loading) {
@@ -609,6 +715,12 @@ export default function ResumesBuilderPage() {
                                     </div>
                                     <div className="flex gap-2">
                                       <button
+                                        onClick={() => openEditExperience(exp)}
+                                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                                      >
+                                        <Edit2 className="w-4 h-4" />
+                                      </button>
+                                      <button
                                         onClick={() => handleDeleteExperience(exp.id)}
                                         className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                                       >
@@ -688,6 +800,12 @@ export default function ResumesBuilderPage() {
                                     </div>
                                     <div className="flex gap-2">
                                       <button
+                                        onClick={() => openEditProject(project)}
+                                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                                      >
+                                        <Edit2 className="w-4 h-4" />
+                                      </button>
+                                      <button
                                         onClick={() => handleDeleteProject(project.id)}
                                         className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                                       >
@@ -747,7 +865,10 @@ export default function ResumesBuilderPage() {
                                       </div>
                                     </div>
                                     <div className="flex gap-2">
-                                      <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
+                                      <button
+                                        onClick={() => openEditSkill(skillCat)}
+                                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                                      >
                                         <Edit2 className="w-4 h-4" />
                                       </button>
                                       <button
@@ -811,7 +932,10 @@ export default function ResumesBuilderPage() {
                                       </div>
                                     </div>
                                     <div className="flex gap-2">
-                                      <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
+                                      <button
+                                        onClick={() => openEditEducation(edu)}
+                                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                                      >
                                         <Edit2 className="w-4 h-4" />
                                       </button>
                                       <button
@@ -959,7 +1083,7 @@ export default function ResumesBuilderPage() {
               className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Add Work Experience</h2>
+                <h2 className="text-2xl font-bold text-white">{editingExperience ? 'Edit' : 'Add'} Work Experience</h2>
                 <button onClick={() => setShowExperienceModal(false)} className="text-slate-400 hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
@@ -1105,7 +1229,7 @@ export default function ResumesBuilderPage() {
               className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Add Project</h2>
+                <h2 className="text-2xl font-bold text-white">{editingProject ? 'Edit' : 'Add'} Project</h2>
                 <button onClick={() => setShowProjectModal(false)} className="text-slate-400 hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
@@ -1273,7 +1397,7 @@ export default function ResumesBuilderPage() {
               className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Add Skill Category</h2>
+                <h2 className="text-2xl font-bold text-white">{editingSkill ? 'Edit' : 'Add'} Skill Category</h2>
                 <button onClick={() => setShowSkillModal(false)} className="text-slate-400 hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
@@ -1371,7 +1495,7 @@ export default function ResumesBuilderPage() {
               className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Add Education</h2>
+                <h2 className="text-2xl font-bold text-white">{editingEducation ? 'Edit' : 'Add'} Education</h2>
                 <button onClick={() => setShowEducationModal(false)} className="text-slate-400 hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
