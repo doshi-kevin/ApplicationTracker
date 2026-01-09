@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
-type Theme = 'dark' | 'ultra-dark'
+type Theme = 'dark' | 'ultra-dark' | 'bright'
 
 interface ThemeContextType {
   theme: Theme
@@ -30,11 +30,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (savedTheme) {
       setThemeState(savedTheme)
       applyTheme(savedTheme)
+    } else {
+      applyTheme('dark')
     }
   }, [])
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement
+
+    // Remove all theme classes first
+    root.classList.remove('ultra-dark', 'bright')
 
     if (newTheme === 'ultra-dark') {
       root.style.setProperty('--bg-primary', '#000000')
@@ -46,7 +51,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty('--text-secondary', '#a0a0a0')
       root.style.setProperty('--glass-bg', 'rgba(10, 10, 10, 0.4)')
       root.classList.add('ultra-dark')
+    } else if (newTheme === 'bright') {
+      root.style.setProperty('--bg-primary', '#f8fafc')
+      root.style.setProperty('--bg-secondary', '#f1f5f9')
+      root.style.setProperty('--bg-tertiary', '#e2e8f0')
+      root.style.setProperty('--bg-elevated', '#ffffff')
+      root.style.setProperty('--border-color', 'rgba(0, 0, 0, 0.1)')
+      root.style.setProperty('--text-primary', '#0f172a')
+      root.style.setProperty('--text-secondary', '#475569')
+      root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.8)')
+      root.classList.add('bright')
     } else {
+      // Default dark mode
       root.style.setProperty('--bg-primary', '#0a0a0a')
       root.style.setProperty('--bg-secondary', '#111111')
       root.style.setProperty('--bg-tertiary', '#1a1a1a')
@@ -55,7 +71,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty('--text-primary', '#ffffff')
       root.style.setProperty('--text-secondary', '#94a3b8')
       root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.05)')
-      root.classList.remove('ultra-dark')
     }
   }
 
@@ -66,7 +81,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'ultra-dark' : 'dark'
+    // Cycle through: dark -> ultra-dark -> bright -> dark
+    let newTheme: Theme
+    if (theme === 'dark') newTheme = 'ultra-dark'
+    else if (theme === 'ultra-dark') newTheme = 'bright'
+    else newTheme = 'dark'
     setTheme(newTheme)
   }
 

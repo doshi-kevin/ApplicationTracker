@@ -29,7 +29,7 @@ const navigation = [
   { name: 'Contacts', href: '/contacts', icon: Users, color: 'text-pink-400' },
   { name: 'Events', href: '/events', icon: Calendar, color: 'text-cyan-400' },
   { name: 'Reminders', href: '/reminders', icon: Bell, color: 'text-amber-400' },
-  { name: 'Resumes', href: '/resumes', icon: FileEdit, color: 'text-violet-400' },
+  { name: 'Resume Builder', href: '/resumes-builder', icon: FileEdit, color: 'text-violet-400' },
   { name: 'Resources', href: '/resources', icon: BookOpen, color: 'text-teal-400' },
   { name: 'Learning', href: '/learning', icon: GraduationCap, color: 'text-indigo-400' },
   { name: 'Email Templates', href: '/email-templates', icon: Mail, color: 'text-rose-400' },
