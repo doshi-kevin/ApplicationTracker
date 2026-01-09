@@ -340,6 +340,71 @@ export default function ResumesBuilderPage() {
     }
   }
 
+  // Delete handlers
+  const handleDeleteExperience = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this experience?')) return
+
+    try {
+      const response = await fetch(`/api/experiences/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchResumes()
+      } else {
+        alert('Failed to delete experience')
+      }
+    } catch (error) {
+      console.error('Error deleting experience:', error)
+      alert('Error deleting experience')
+    }
+  }
+
+  const handleDeleteProject = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return
+
+    try {
+      const response = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchResumes()
+      } else {
+        alert('Failed to delete project')
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      alert('Error deleting project')
+    }
+  }
+
+  const handleDeleteSkill = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this skill category?')) return
+
+    try {
+      const response = await fetch(`/api/skills/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchResumes()
+      } else {
+        alert('Failed to delete skill')
+      }
+    } catch (error) {
+      console.error('Error deleting skill:', error)
+      alert('Error deleting skill')
+    }
+  }
+
+  const handleDeleteEducation = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this education entry?')) return
+
+    try {
+      const response = await fetch(`/api/education/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchResumes()
+      } else {
+        alert('Failed to delete education')
+      }
+    } catch (error) {
+      console.error('Error deleting education:', error)
+      alert('Error deleting education')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -517,10 +582,10 @@ export default function ResumesBuilderPage() {
                                       </div>
                                     </div>
                                     <div className="flex gap-2">
-                                      <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
-                                        <Edit2 className="w-4 h-4" />
-                                      </button>
-                                      <button className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
+                                      <button
+                                        onClick={() => handleDeleteExperience(exp.id)}
+                                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                      >
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>
@@ -596,10 +661,10 @@ export default function ResumesBuilderPage() {
                                       </div>
                                     </div>
                                     <div className="flex gap-2">
-                                      <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
-                                        <Edit2 className="w-4 h-4" />
-                                      </button>
-                                      <button className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
+                                      <button
+                                        onClick={() => handleDeleteProject(project.id)}
+                                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                      >
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>
@@ -659,7 +724,10 @@ export default function ResumesBuilderPage() {
                                       <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
                                         <Edit2 className="w-4 h-4" />
                                       </button>
-                                      <button className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
+                                      <button
+                                        onClick={() => handleDeleteSkill(skillCat.id)}
+                                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                      >
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>
@@ -720,7 +788,10 @@ export default function ResumesBuilderPage() {
                                       <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
                                         <Edit2 className="w-4 h-4" />
                                       </button>
-                                      <button className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors">
+                                      <button
+                                        onClick={() => handleDeleteEducation(edu.id)}
+                                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                      >
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>
