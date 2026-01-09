@@ -96,6 +96,7 @@ export default function ResumesBuilderPage() {
   const [showSkillModal, setShowSkillModal] = useState(false)
   const [showEducationModal, setShowEducationModal] = useState(false)
 
+  const [editingResume, setEditingResume] = useState<Resume | null>(null)
   const [editingExperience, setEditingExperience] = useState<Experience | null>(null)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [editingSkill, setEditingSkill] = useState<SkillCategory | null>(null)
@@ -173,18 +174,31 @@ export default function ResumesBuilderPage() {
 
   const handleCreateResume = async () => {
     try {
-      const response = await fetch('/api/resumes-new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resumeForm)
-      })
+      let response
+      if (editingResume) {
+        // Update existing resume
+        response = await fetch(`/api/resumes-new/${editingResume.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(resumeForm)
+        })
+      } else {
+        // Create new resume
+        response = await fetch('/api/resumes-new', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(resumeForm)
+        })
+      }
+
       if (response.ok) {
         await fetchResumes()
         setShowResumeModal(false)
+        setEditingResume(null)
         setResumeForm({ name: '', description: '', targetRole: '', isDefault: false })
       }
     } catch (error) {
-      console.error('Error creating resume:', error)
+      console.error('Error saving resume:', error)
     }
   }
 
@@ -476,6 +490,17 @@ export default function ResumesBuilderPage() {
   }
 
   // Edit handlers
+  const openEditResume = (resume: Resume) => {
+    setEditingResume(resume)
+    setResumeForm({
+      name: resume.name,
+      description: resume.description || '',
+      targetRole: resume.targetRole || '',
+      isDefault: resume.isDefault
+    })
+    setShowResumeModal(true)
+  }
+
   const openEditExperience = (experience: Experience) => {
     setEditingExperience(experience)
     setExperienceForm({
@@ -633,15 +658,26 @@ export default function ResumesBuilderPage() {
                           </div>
                         )}
                       </div>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleDeleteResume(selectedResume.id)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 font-medium rounded-lg transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete Resume
-                      </motion.button>
+                      <div className="flex gap-3">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => openEditResume(selectedResume)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 font-medium rounded-lg transition-all"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Edit Resume
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDeleteResume(selectedResume.id)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 font-medium rounded-lg transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete Resume
+                        </motion.button>
+                      </div>
                     </div>
                   </div>
 
@@ -994,7 +1030,7 @@ export default function ResumesBuilderPage() {
               className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Create New Resume</h2>
+                <h2 className="text-2xl font-bold text-white">{editingResume ? 'Edit Resume' : 'Create New Resume'}</h2>
                 <button onClick={() => setShowResumeModal(false)} className="text-slate-400 hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
