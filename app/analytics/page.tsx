@@ -2,6 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
+import {
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Award,
+  Clock,
+  Users,
+  Building2,
+  Calendar,
+  Sparkles,
+  ArrowLeft
+} from 'lucide-react'
+import { DashboardSkeleton } from '@/components/LoadingSkeletons'
 
 interface Analytics {
   overview: {
@@ -45,11 +59,7 @@ export default function AnalyticsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="p-8">
-        <div className="text-white text-center">Loading analytics...</div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (!analytics) {
@@ -70,59 +80,127 @@ export default function AnalyticsPage() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-white">Analytics & Insights</h1>
-          <p className="text-gray-400 mt-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-3">
+            <Sparkles className="w-8 h-8 text-purple-400" />
+            Analytics & Insights
+          </h1>
+          <p className="text-slate-400 mt-2">
             Deep dive into your job search performance
           </p>
         </div>
         <Link
           href="/"
-          className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-6 py-3 rounded-lg font-medium"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl"
         >
-          ← Back to Dashboard
+          <ArrowLeft className="w-4 h-4" />
+          Dashboard
         </Link>
-      </div>
+      </motion.div>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <p className="text-gray-400 text-sm">Total Applications</p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="group relative bg-gradient-to-br from-blue-600/10 to-cyan-600/10 border border-white/10 rounded-2xl p-6 hover:border-blue-500/50 transition-all backdrop-blur-xl"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Target className="w-6 h-6 text-blue-400" />
+            </div>
+            <TrendingUp className="w-5 h-5 text-green-400" />
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Total Applications</p>
           <p className="text-4xl font-bold text-white mt-2">
             {analytics.overview.totalApplications}
           </p>
-          <p className="text-sm text-gray-500 mt-2">All time</p>
-        </div>
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <p className="text-gray-400 text-sm">Interview Rate</p>
+          <p className="text-sm text-slate-500 mt-2">All time</p>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-cyan-500/0 group-hover:from-blue-500/5 group-hover:to-cyan-500/5 rounded-2xl transition-all" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="group relative bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-all backdrop-blur-xl"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Calendar className="w-6 h-6 text-purple-400" />
+            </div>
+            <TrendingUp className="w-5 h-5 text-green-400" />
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Interview Rate</p>
           <p className="text-4xl font-bold text-purple-400 mt-2">{responseRate}%</p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-slate-500 mt-2">
             {analytics.overview.interviewCount} of {totalApplied} applied
           </p>
-        </div>
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <p className="text-gray-400 text-sm">Offer Rate</p>
-          <p className="text-4xl font-bold text-green-400 mt-2">{offerRate}%</p>
-          <p className="text-sm text-gray-500 mt-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/5 group-hover:to-pink-500/5 rounded-2xl transition-all" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="group relative bg-gradient-to-br from-emerald-600/10 to-green-600/10 border border-white/10 rounded-2xl p-6 hover:border-emerald-500/50 transition-all backdrop-blur-xl"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Award className="w-6 h-6 text-emerald-400" />
+            </div>
+            <TrendingUp className="w-5 h-5 text-green-400" />
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Offer Rate</p>
+          <p className="text-4xl font-bold text-emerald-400 mt-2">{offerRate}%</p>
+          <p className="text-sm text-slate-500 mt-2">
             {analytics.overview.offerCount} offers received
           </p>
-        </div>
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <p className="text-gray-400 text-sm">Avg Response Time</p>
-          <p className="text-4xl font-bold text-blue-400 mt-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-green-500/0 group-hover:from-emerald-500/5 group-hover:to-green-500/5 rounded-2xl transition-all" />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          className="group relative bg-gradient-to-br from-amber-600/10 to-orange-600/10 border border-white/10 rounded-2xl p-6 hover:border-amber-500/50 transition-all backdrop-blur-xl"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Clock className="w-6 h-6 text-amber-400" />
+            </div>
+            <TrendingDown className="w-5 h-5 text-blue-400" />
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Avg Response Time</p>
+          <p className="text-4xl font-bold text-amber-400 mt-2">
             {analytics.avgResponseTime}
           </p>
-          <p className="text-sm text-gray-500 mt-2">days to hear back</p>
-        </div>
+          <p className="text-sm text-slate-500 mt-2">days to hear back</p>
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-orange-500/0 group-hover:from-amber-500/5 group-hover:to-orange-500/5 rounded-2xl transition-all" />
+        </motion.div>
       </div>
 
       {/* Success Rates Comparison */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <h2 className="text-xl font-semibold text-white mb-6">
-            Referral Impact
-          </h2>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <Users className="w-5 h-5 text-green-400" />
+            <h2 className="text-xl font-semibold text-white">
+              Referral Impact
+            </h2>
+          </div>
           <div className="space-y-6">
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -152,18 +230,27 @@ export default function AnalyticsPage() {
                 />
               </div>
             </div>
-            <div className="pt-4 border-t border-[#2a2a2a]">
-              <p className="text-sm text-gray-400">
-                💡 Referrals can significantly increase your chances of success!
+            <div className="pt-4 border-t border-white/10">
+              <p className="text-sm text-slate-400 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                Referrals can significantly increase your chances of success!
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <h2 className="text-xl font-semibold text-white mb-6">
-            Application Status Breakdown
-          </h2>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <Building2 className="w-5 h-5 text-blue-400" />
+            <h2 className="text-xl font-semibold text-white">
+              Application Status Breakdown
+            </h2>
+          </div>
           <div className="space-y-3">
             {Object.entries(analytics.statusCounts).map(([status, count]) => {
               const percentage = totalApplied > 0
@@ -192,10 +279,18 @@ export default function AnalyticsPage() {
 
       {/* Applications Timeline */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <h2 className="text-xl font-semibold text-white mb-6">
-            Applications Over Time
-          </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <Calendar className="w-5 h-5 text-purple-400" />
+            <h2 className="text-xl font-semibold text-white">
+              Applications Over Time
+            </h2>
+          </div>
           {Object.keys(analytics.applicationsPerMonth).length === 0 ? (
             <p className="text-gray-400 text-center py-8">No application data yet</p>
           ) : (
@@ -222,12 +317,20 @@ export default function AnalyticsPage() {
                 })}
             </div>
           )}
-        </div>
+        </motion.div>
 
-        <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-          <h2 className="text-xl font-semibold text-white mb-6">
-            Top Companies
-          </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <Building2 className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-xl font-semibold text-white">
+              Top Companies
+            </h2>
+          </div>
           {analytics.topCompanies.length === 0 ? (
             <p className="text-gray-400 text-center py-8">No company data yet</p>
           ) : (
@@ -257,34 +360,66 @@ export default function AnalyticsPage() {
               })}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Network Stats */}
-      <div className="bg-[#1a1a1a] rounded-lg p-6 border border-[#2a2a2a]">
-        <h2 className="text-xl font-semibold text-white mb-6">
-          Your Professional Network
-        </h2>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.9 }}
+        className="bg-gradient-to-br from-indigo-600/10 to-purple-600/10 border border-white/10 rounded-2xl p-8 backdrop-blur-xl"
+      >
+        <div className="flex items-center gap-2 mb-6">
+          <Users className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-semibold text-white">
+            Your Professional Network
+          </h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <p className="text-4xl font-bold text-blue-400">{analytics.totalContacts}</p>
-            <p className="text-gray-400 mt-2">Total Contacts</p>
-          </div>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-green-400">{analytics.referrableContacts}</p>
-            <p className="text-gray-400 mt-2">Can Refer You</p>
-          </div>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-purple-400">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.0 }}
+            className="text-center bg-white/5 rounded-xl p-6 border border-white/10"
+          >
+            <div className="w-16 h-16 bg-blue-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Users className="w-8 h-8 text-blue-400" />
+            </div>
+            <p className="text-5xl font-bold text-blue-400">{analytics.totalContacts}</p>
+            <p className="text-slate-400 mt-2 font-medium">Total Contacts</p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.1 }}
+            className="text-center bg-white/5 rounded-xl p-6 border border-white/10"
+          >
+            <div className="w-16 h-16 bg-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Award className="w-8 h-8 text-emerald-400" />
+            </div>
+            <p className="text-5xl font-bold text-emerald-400">{analytics.referrableContacts}</p>
+            <p className="text-slate-400 mt-2 font-medium">Can Refer You</p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.2 }}
+            className="text-center bg-white/5 rounded-xl p-6 border border-white/10"
+          >
+            <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-8 h-8 text-purple-400" />
+            </div>
+            <p className="text-5xl font-bold text-purple-400">
               {analytics.totalContacts > 0
                 ? ((analytics.referrableContacts / analytics.totalContacts) * 100).toFixed(0)
                 : '0'}
               %
             </p>
-            <p className="text-gray-400 mt-2">Referral Rate</p>
-          </div>
+            <p className="text-slate-400 mt-2 font-medium">Referral Rate</p>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

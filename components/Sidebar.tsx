@@ -17,7 +17,8 @@ import {
   GraduationCap,
   Mail,
   BarChart3,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from 'lucide-react'
 
 const navigation = [
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Events', href: '/events', icon: Calendar, color: 'text-cyan-400' },
   { name: 'Reminders', href: '/reminders', icon: Bell, color: 'text-amber-400' },
   { name: 'Resumes', href: '/resumes', icon: FileEdit, color: 'text-violet-400' },
+  { name: 'Resources', href: '/resources', icon: BookOpen, color: 'text-teal-400' },
   { name: 'Learning', href: '/learning', icon: GraduationCap, color: 'text-indigo-400' },
   { name: 'Email Templates', href: '/email-templates', icon: Mail, color: 'text-rose-400' },
 ]

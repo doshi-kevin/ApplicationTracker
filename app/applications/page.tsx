@@ -24,6 +24,7 @@ import {
   Filter
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import CompanyContacts, { CompanyContactsBadge } from '@/components/CompanyContacts'
 
 interface Company {
   id: string
@@ -96,6 +97,7 @@ export default function ApplicationsPage() {
 
   const [showCompanyModal, setShowCompanyModal] = useState(false)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
+  const [expandedAppId, setExpandedAppId] = useState<string | null>(null)
   const [companyFormData, setCompanyFormData] = useState({
     name: '',
     website: '',
@@ -790,6 +792,14 @@ export default function ApplicationsPage() {
                         {app.description && (
                           <p className="text-slate-400 text-sm line-clamp-2">{app.description}</p>
                         )}
+
+                        {/* Company Contacts Badge */}
+                        <div className="mt-3">
+                          <CompanyContactsBadge
+                            companyId={app.company.id}
+                            contacts={contacts}
+                          />
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -829,6 +839,45 @@ export default function ApplicationsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Expandable Company Contacts Section */}
+                    <AnimatePresence>
+                      {expandedAppId === app.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="border-t border-white/10 pt-6 mt-6 overflow-hidden"
+                        >
+                          <CompanyContacts
+                            companyId={app.company.id}
+                            companyName={app.company.name}
+                            contacts={contacts}
+                            applicationId={app.id}
+                            compact={false}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Expand/Collapse Button */}
+                    <button
+                      onClick={() => setExpandedAppId(expandedAppId === app.id ? null : app.id)}
+                      className="mt-4 w-full py-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {expandedAppId === app.id ? (
+                        <>
+                          Hide Company Contacts
+                          <ChevronRight className="w-4 h-4 rotate-90" />
+                        </>
+                      ) : (
+                        <>
+                          View Company Contacts
+                          <ChevronRight className="w-4 h-4 -rotate-90" />
+                        </>
+                      )}
+                    </button>
                   </motion.div>
                 )
               })}

@@ -334,5 +334,165 @@ model ResumeSection {
   @@unique([templateId, name]) // Prevent duplicate section names in same template
 }
 
+// Resource Management Models
+
+model Resource {
+  id              String         @id @default(cuid())
+
+  // Basic info
+  title           String
+  description     String?
+  url             String?        // YouTube link, GitHub link, website, etc.
+  type            String         // "youtube", "github", "article", "documentation", "course", "other"
+
+  // Organization
+  category        String?        // "Frontend", "Backend", "Interview Prep", "DSA", etc.
+  tags            String?        // Comma-separated tags
+
+  // Parent-child relationship for nested resources
+  parentId        String?
+  parent          Resource?      @relation("ResourceSubResources", fields: [parentId], references: [id], onDelete: Cascade)
+  subResources    Resource[]     @relation("ResourceSubResources")
+
+  // Tracking
+  isCompleted     Boolean        @default(false)
+  isFavorite      Boolean        @default(false)
+  notes           String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([type])
+  @@index([category])
+  @@index([parentId])
+  @@index([isCompleted])
+  @@index([isFavorite])
+}
+
+// Enhanced Resume Models (replacing old ones)
+
+model Resume {
+  id              String         @id @default(cuid())
+
+  // Resume info
+  name            String         // e.g., "Machine Learning Resume", "SDE Resume"
+  description     String?
+  targetRole      String?        // "ML Engineer", "SDE Intern", etc.
+
+  // Sections
+  experiences     Experience[]
+  projects        Project[]
+  skills          SkillCategory[]
+  education       Education[]
+
+  // Metadata
+  isDefault       Boolean        @default(false)
+  lastUsedAt      DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([name])
+  @@index([targetRole])
+}
+
+model Experience {
+  id              String         @id @default(cuid())
+
+  resumeId        String
+  resume          Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  // Company and role info
+  company         String
+  position        String
+  location        String?
+  startDate       String         // "Jan 2023"
+  endDate         String?        // "Present" or "Dec 2023"
+
+  // Bullet points
+  bulletPoints    String         @db.Text // JSON array of strings
+
+  // Order in resume
+  order           Int            @default(0)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([resumeId])
+}
+
+model Project {
+  id              String         @id @default(cuid())
+
+  resumeId        String
+  resume          Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  // Project info
+  name            String
+  description     String?
+  technologies    String?        // "React, Node.js, MongoDB"
+  githubUrl       String?
+  liveUrl         String?
+  startDate       String?
+  endDate         String?
+
+  // Bullet points
+  bulletPoints    String         @db.Text // JSON array of strings
+
+  // Order in resume
+  order           Int            @default(0)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([resumeId])
+}
+
+model SkillCategory {
+  id              String         @id @default(cuid())
+
+  resumeId        String
+  resume          Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  // Category info
+  name            String         // "Languages", "Frameworks", "Tools", etc.
+  skills          String         @db.Text // JSON array of skill names
+
+  // Order in resume
+  order           Int            @default(0)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([resumeId])
+}
+
+model Education {
+  id              String         @id @default(cuid())
+
+  resumeId        String
+  resume          Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  // School info
+  school          String
+  degree          String
+  field           String?
+  location        String?
+  startDate       String
+  endDate         String?
+  gpa             String?
+
+  // Achievements/coursework
+  achievements    String?        @db.Text // JSON array of strings
+
+  // Order in resume
+  order           Int            @default(0)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([resumeId])
+}
+
 // Enums
 
