@@ -121,6 +121,16 @@ export default function ContactsPage() {
     }
   }
 
+  const copyEmailToClipboard = async (email: string) => {
+    try {
+      await navigator.clipboard.writeText(email)
+      alert(`Email copied: ${email}`)
+    } catch (error) {
+      console.error('Error copying email:', error)
+      alert('Failed to copy email')
+    }
+  }
+
   const handleCreateCompany = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!companyFormData.name.trim()) return
@@ -559,13 +569,14 @@ export default function ContactsPage() {
                           </a>
                         )}
                         {contact.email && (
-                          <a
-                            href={`mailto:${contact.email}`}
+                          <button
+                            onClick={() => copyEmailToClipboard(contact.email!)}
                             className="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+                            title={`Click to copy: ${contact.email}`}
                           >
                             <Mail className="w-4 h-4" />
                             Email
-                          </a>
+                          </button>
                         )}
                       </div>
                     </div>
