@@ -37,6 +37,12 @@ interface Company {
 interface Contact {
   id: string
   name: string
+  email?: string
+  phone?: string
+  position?: string
+  linkedinUrl?: string
+  canRefer: boolean
+  status?: 'connected' | 'pending' | 'replied' | 'no_response'
   company: {
     id: string
     name: string
