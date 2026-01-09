@@ -3,10 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import { ToastProvider } from "@/components/ToastProvider";
-import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandPalette from "@/components/CommandPalette";
 import QuickActions from "@/components/QuickActions";
-import ThemeToggle from "@/components/ThemeToggle";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,19 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <ThemeProvider>
-          <ToastProvider>
-            <div className="flex h-screen bg-[#0a0a0a]">
-              <Sidebar />
-              <main className="flex-1 overflow-y-auto">
-                {children}
-              </main>
-              <CommandPalette />
-              <QuickActions />
-              <ThemeToggle />
-            </div>
-          </ToastProvider>
-        </ThemeProvider>
+        <ToastProvider>
+          <div className="flex h-screen bg-[#0a0a0a]">
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto">
+              {children}
+            </main>
+            <CommandPalette />
+            <QuickActions />
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );

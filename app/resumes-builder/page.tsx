@@ -154,7 +154,14 @@ export default function ResumesBuilderPage() {
       const response = await fetch('/api/resumes-new')
       const data = await response.json()
       setResumes(data)
-      if (data.length > 0 && !selectedResume) {
+
+      // Update selected resume if it exists
+      if (selectedResume) {
+        const updatedSelectedResume = data.find((r: Resume) => r.id === selectedResume.id)
+        if (updatedSelectedResume) {
+          setSelectedResume(updatedSelectedResume)
+        }
+      } else if (data.length > 0) {
         setSelectedResume(data[0])
       }
     } catch (error) {
@@ -182,18 +189,26 @@ export default function ResumesBuilderPage() {
   }
 
   const handleCreateExperience = async () => {
-    if (!selectedResume) return
+    if (!selectedResume) {
+      alert('Please select a resume first')
+      return
+    }
 
     try {
+      const payload = {
+        ...experienceForm,
+        resumeId: selectedResume.id,
+        bulletPoints: JSON.stringify(experienceForm.bulletPoints.filter(b => b.trim()))
+      }
+
       const response = await fetch('/api/experiences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...experienceForm,
-          resumeId: selectedResume.id,
-          bulletPoints: JSON.stringify(experienceForm.bulletPoints.filter(b => b.trim()))
-        })
+        body: JSON.stringify(payload)
       })
+
+      const responseData = await response.json()
+
       if (response.ok) {
         await fetchResumes()
         setShowExperienceModal(false)
@@ -205,14 +220,21 @@ export default function ResumesBuilderPage() {
           endDate: '',
           bulletPoints: ['', '', '']
         })
+      } else {
+        console.error('Failed to create experience:', responseData)
+        alert('Failed to create experience: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error creating experience:', error)
+      alert('Error creating experience. Check console for details.')
     }
   }
 
   const handleCreateProject = async () => {
-    if (!selectedResume) return
+    if (!selectedResume) {
+      alert('Please select a resume first')
+      return
+    }
 
     try {
       const response = await fetch('/api/projects', {
@@ -224,6 +246,7 @@ export default function ResumesBuilderPage() {
           bulletPoints: JSON.stringify(projectForm.bulletPoints.filter(b => b.trim()))
         })
       })
+      const responseData = await response.json()
       if (response.ok) {
         await fetchResumes()
         setShowProjectModal(false)
@@ -237,14 +260,20 @@ export default function ResumesBuilderPage() {
           endDate: '',
           bulletPoints: ['', '', '']
         })
+      } else {
+        alert('Failed to create project: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error creating project:', error)
+      alert('Error creating project. Check console for details.')
     }
   }
 
   const handleCreateSkill = async () => {
-    if (!selectedResume) return
+    if (!selectedResume) {
+      alert('Please select a resume first')
+      return
+    }
 
     try {
       const response = await fetch('/api/skills', {
@@ -256,18 +285,25 @@ export default function ResumesBuilderPage() {
           skills: JSON.stringify(skillForm.skills.filter(s => s.trim()))
         })
       })
+      const responseData = await response.json()
       if (response.ok) {
         await fetchResumes()
         setShowSkillModal(false)
         setSkillForm({ name: '', skills: [''] })
+      } else {
+        alert('Failed to create skill: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error creating skill category:', error)
+      alert('Error creating skill. Check console for details.')
     }
   }
 
   const handleCreateEducation = async () => {
-    if (!selectedResume) return
+    if (!selectedResume) {
+      alert('Please select a resume first')
+      return
+    }
 
     try {
       const response = await fetch('/api/education', {
@@ -281,6 +317,7 @@ export default function ResumesBuilderPage() {
             : null
         })
       })
+      const responseData = await response.json()
       if (response.ok) {
         await fetchResumes()
         setShowEducationModal(false)
@@ -294,9 +331,12 @@ export default function ResumesBuilderPage() {
           gpa: '',
           achievements: ['']
         })
+      } else {
+        alert('Failed to create education: ' + (responseData.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error creating education:', error)
+      alert('Error creating education. Check console for details.')
     }
   }
 
