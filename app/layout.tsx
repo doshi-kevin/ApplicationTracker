@@ -4,7 +4,6 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import { ToastProvider } from "@/components/ToastProvider";
 import CommandPalette from "@/components/CommandPalette";
-import QuickActions from "@/components/QuickActions";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,7 +30,6 @@ export default function RootLayout({
               {children}
             </main>
             <CommandPalette />
-            <QuickActions />
           </div>
         </ToastProvider>
       </body>

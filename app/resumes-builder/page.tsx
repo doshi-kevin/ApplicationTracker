@@ -405,6 +405,23 @@ export default function ResumesBuilderPage() {
     }
   }
 
+  const handleDeleteResume = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this entire resume? This action cannot be undone.')) return
+
+    try {
+      const response = await fetch(`/api/resumes-new/${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchResumes()
+        setSelectedResume(null)
+      } else {
+        alert('Failed to delete resume')
+      }
+    } catch (error) {
+      console.error('Error deleting resume:', error)
+      alert('Error deleting resume')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -510,6 +527,15 @@ export default function ResumesBuilderPage() {
                           </div>
                         )}
                       </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleDeleteResume(selectedResume.id)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 font-medium rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Resume
+                      </motion.button>
                     </div>
                   </div>
 
