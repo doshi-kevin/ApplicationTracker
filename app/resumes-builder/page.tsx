@@ -804,8 +804,587 @@ export default function ResumesBuilderPage() {
         )}
       </AnimatePresence>
 
-      {/* Experience Modal - Similar structure */}
-      {/* I'll continue with modals in the next message to keep this manageable */}
+      {/* Experience Modal */}
+      <AnimatePresence>
+        {showExperienceModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowExperienceModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Add Work Experience</h2>
+                <button onClick={() => setShowExperienceModal(false)} className="text-slate-400 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Company</label>
+                    <input
+                      type="text"
+                      value={experienceForm.company}
+                      onChange={(e) => setExperienceForm({ ...experienceForm, company: e.target.value })}
+                      placeholder="e.g., Google"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Position</label>
+                    <input
+                      type="text"
+                      value={experienceForm.position}
+                      onChange={(e) => setExperienceForm({ ...experienceForm, position: e.target.value })}
+                      placeholder="e.g., Software Engineer"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Location (Optional)</label>
+                  <input
+                    type="text"
+                    value={experienceForm.location}
+                    onChange={(e) => setExperienceForm({ ...experienceForm, location: e.target.value })}
+                    placeholder="e.g., San Francisco, CA"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Start Date</label>
+                    <input
+                      type="text"
+                      value={experienceForm.startDate}
+                      onChange={(e) => setExperienceForm({ ...experienceForm, startDate: e.target.value })}
+                      placeholder="e.g., Jan 2023"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">End Date (Optional)</label>
+                    <input
+                      type="text"
+                      value={experienceForm.endDate}
+                      onChange={(e) => setExperienceForm({ ...experienceForm, endDate: e.target.value })}
+                      placeholder="e.g., Present"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Bullet Points</label>
+                  <div className="space-y-2">
+                    {experienceForm.bulletPoints.map((bullet, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={bullet}
+                          onChange={(e) => {
+                            const newBullets = [...experienceForm.bulletPoints]
+                            newBullets[index] = e.target.value
+                            setExperienceForm({ ...experienceForm, bulletPoints: newBullets })
+                          }}
+                          placeholder={`Bullet point ${index + 1}`}
+                          className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {experienceForm.bulletPoints.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newBullets = experienceForm.bulletPoints.filter((_, i) => i !== index)
+                              setExperienceForm({ ...experienceForm, bulletPoints: newBullets })
+                            }}
+                            className="p-2.5 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setExperienceForm({
+                        ...experienceForm,
+                        bulletPoints: [...experienceForm.bulletPoints, '']
+                      })}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add more
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowExperienceModal(false)}
+                    className="flex-1 px-4 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateExperience}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"
+                  >
+                    Add Experience
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Project Modal */}
+      <AnimatePresence>
+        {showProjectModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowProjectModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Add Project</h2>
+                <button onClick={() => setShowProjectModal(false)} className="text-slate-400 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Project Name</label>
+                  <input
+                    type="text"
+                    value={projectForm.name}
+                    onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })}
+                    placeholder="e.g., E-commerce Platform"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Description (Optional)</label>
+                  <input
+                    type="text"
+                    value={projectForm.description}
+                    onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                    placeholder="Brief description of the project"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Technologies (Optional)</label>
+                  <input
+                    type="text"
+                    value={projectForm.technologies}
+                    onChange={(e) => setProjectForm({ ...projectForm, technologies: e.target.value })}
+                    placeholder="e.g., React, Node.js, PostgreSQL"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">GitHub URL (Optional)</label>
+                    <input
+                      type="text"
+                      value={projectForm.githubUrl}
+                      onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
+                      placeholder="https://github.com/..."
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Live URL (Optional)</label>
+                    <input
+                      type="text"
+                      value={projectForm.liveUrl}
+                      onChange={(e) => setProjectForm({ ...projectForm, liveUrl: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Start Date (Optional)</label>
+                    <input
+                      type="text"
+                      value={projectForm.startDate}
+                      onChange={(e) => setProjectForm({ ...projectForm, startDate: e.target.value })}
+                      placeholder="e.g., Jan 2023"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">End Date (Optional)</label>
+                    <input
+                      type="text"
+                      value={projectForm.endDate}
+                      onChange={(e) => setProjectForm({ ...projectForm, endDate: e.target.value })}
+                      placeholder="e.g., Mar 2023"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Bullet Points</label>
+                  <div className="space-y-2">
+                    {projectForm.bulletPoints.map((bullet, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={bullet}
+                          onChange={(e) => {
+                            const newBullets = [...projectForm.bulletPoints]
+                            newBullets[index] = e.target.value
+                            setProjectForm({ ...projectForm, bulletPoints: newBullets })
+                          }}
+                          placeholder={`Bullet point ${index + 1}`}
+                          className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {projectForm.bulletPoints.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newBullets = projectForm.bulletPoints.filter((_, i) => i !== index)
+                              setProjectForm({ ...projectForm, bulletPoints: newBullets })
+                            }}
+                            className="p-2.5 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setProjectForm({
+                        ...projectForm,
+                        bulletPoints: [...projectForm.bulletPoints, '']
+                      })}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add more
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowProjectModal(false)}
+                    className="flex-1 px-4 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateProject}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"
+                  >
+                    Add Project
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Skill Modal */}
+      <AnimatePresence>
+        {showSkillModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowSkillModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Add Skill Category</h2>
+                <button onClick={() => setShowSkillModal(false)} className="text-slate-400 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Category Name</label>
+                  <input
+                    type="text"
+                    value={skillForm.name}
+                    onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
+                    placeholder="e.g., Programming Languages, Frameworks"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Skills</label>
+                  <div className="space-y-2">
+                    {skillForm.skills.map((skill, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={skill}
+                          onChange={(e) => {
+                            const newSkills = [...skillForm.skills]
+                            newSkills[index] = e.target.value
+                            setSkillForm({ ...skillForm, skills: newSkills })
+                          }}
+                          placeholder={`Skill ${index + 1}`}
+                          className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {skillForm.skills.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newSkills = skillForm.skills.filter((_, i) => i !== index)
+                              setSkillForm({ ...skillForm, skills: newSkills })
+                            }}
+                            className="p-2.5 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setSkillForm({
+                        ...skillForm,
+                        skills: [...skillForm.skills, '']
+                      })}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add more
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowSkillModal(false)}
+                    className="flex-1 px-4 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateSkill}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"
+                  >
+                    Add Skills
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Education Modal */}
+      <AnimatePresence>
+        {showEducationModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowEducationModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Add Education</h2>
+                <button onClick={() => setShowEducationModal(false)} className="text-slate-400 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">School</label>
+                    <input
+                      type="text"
+                      value={educationForm.school}
+                      onChange={(e) => setEducationForm({ ...educationForm, school: e.target.value })}
+                      placeholder="e.g., MIT"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Degree</label>
+                    <input
+                      type="text"
+                      value={educationForm.degree}
+                      onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
+                      placeholder="e.g., Bachelor of Science"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Field of Study (Optional)</label>
+                    <input
+                      type="text"
+                      value={educationForm.field}
+                      onChange={(e) => setEducationForm({ ...educationForm, field: e.target.value })}
+                      placeholder="e.g., Computer Science"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Location (Optional)</label>
+                    <input
+                      type="text"
+                      value={educationForm.location}
+                      onChange={(e) => setEducationForm({ ...educationForm, location: e.target.value })}
+                      placeholder="e.g., Cambridge, MA"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Start Date</label>
+                    <input
+                      type="text"
+                      value={educationForm.startDate}
+                      onChange={(e) => setEducationForm({ ...educationForm, startDate: e.target.value })}
+                      placeholder="e.g., Aug 2020"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">End Date (Optional)</label>
+                    <input
+                      type="text"
+                      value={educationForm.endDate}
+                      onChange={(e) => setEducationForm({ ...educationForm, endDate: e.target.value })}
+                      placeholder="e.g., May 2024"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">GPA (Optional)</label>
+                    <input
+                      type="text"
+                      value={educationForm.gpa}
+                      onChange={(e) => setEducationForm({ ...educationForm, gpa: e.target.value })}
+                      placeholder="e.g., 3.8/4.0"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Achievements (Optional)</label>
+                  <div className="space-y-2">
+                    {educationForm.achievements.map((achievement, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={achievement}
+                          onChange={(e) => {
+                            const newAchievements = [...educationForm.achievements]
+                            newAchievements[index] = e.target.value
+                            setEducationForm({ ...educationForm, achievements: newAchievements })
+                          }}
+                          placeholder={`Achievement ${index + 1}`}
+                          className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {educationForm.achievements.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const newAchievements = educationForm.achievements.filter((_, i) => i !== index)
+                              setEducationForm({ ...educationForm, achievements: newAchievements })
+                            }}
+                            className="p-2.5 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setEducationForm({
+                        ...educationForm,
+                        achievements: [...educationForm.achievements, '']
+                      })}
+                      className="inline-flex items-center gap-2 px-3 py-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add more
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowEducationModal(false)}
+                    className="flex-1 px-4 py-2.5 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateEducation}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-colors"
+                  >
+                    Add Education
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

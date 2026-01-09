@@ -1,10 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: #1a1a1a;
-  --card-hover: #252525;
+  /* Theme variables - managed by ThemeProvider */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-elevated: #222222;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+
+  /* Legacy variables */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-tertiary);
+  --card-hover: var(--bg-elevated);
   --border: #2a2a2a;
   --input: #1f1f1f;
   --primary: #3b82f6;
@@ -14,6 +25,36 @@
   --warning: #f59e0b;
   --danger: #ef4444;
   --muted: #6b7280;
+}
+
+/* Ultra Dark Theme */
+.ultra-dark {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #141414;
+  --bg-elevated: #1a1a1a;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --background: #000000;
+  --card: #141414;
+  --card-hover: #1a1a1a;
+}
+
+/* Bright Theme */
+.bright {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --bg-elevated: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-hover: #f1f5f9;
+  --border: rgba(0, 0, 0, 0.1);
 }
 
 @theme inline {
