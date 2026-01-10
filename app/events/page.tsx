@@ -30,6 +30,8 @@ import { cn } from '@/lib/utils'
 // Helper function to convert date to local datetime-local format without timezone shift
 function toLocalDateTimeString(date: Date | string): string {
   const d = new Date(date)
+  // Add 5 hours to compensate for timezone difference
+  d.setHours(d.getHours() + 5)
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
@@ -398,6 +400,8 @@ export default function EventsPage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
+    // Add 5 hours to compensate for timezone difference
+    date.setHours(date.getHours() + 5)
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
