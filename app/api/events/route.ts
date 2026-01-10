@@ -47,6 +47,14 @@ export async function POST(request: Request) {
       notes,
     } = body
 
+    // Convert datetime-local format to ISO string without timezone conversion
+    // Input format: "2024-01-15T14:00" (from datetime-local input)
+    // We append ":00.000Z" to make it a valid ISO string that Prisma accepts
+    // This preserves the exact time without timezone shifts
+    const scheduledDateISO = scheduledDate.includes('T') && !scheduledDate.includes('Z')
+      ? `${scheduledDate}:00.000Z`
+      : scheduledDate
+
     const event = await prisma.event.create({
       data: {
         type: type || 'REMINDER',
@@ -54,7 +62,7 @@ export async function POST(request: Request) {
         contactId: contactId || null,
         title,
         description: description || null,
-        scheduledDate: scheduledDate,
+        scheduledDate: scheduledDateISO,
         duration: duration || null,
         round: round || null,
         interviewers: interviewers || null,

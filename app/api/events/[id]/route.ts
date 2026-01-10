@@ -68,7 +68,13 @@ export async function PATCH(
     if (contactId !== undefined) updateData.contactId = contactId || null
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description || null
-    if (scheduledDate !== undefined) updateData.scheduledDate = scheduledDate
+    if (scheduledDate !== undefined) {
+      // Convert datetime-local format to ISO string without timezone conversion
+      const scheduledDateISO = scheduledDate.includes('T') && !scheduledDate.includes('Z')
+        ? `${scheduledDate}:00.000Z`
+        : scheduledDate
+      updateData.scheduledDate = scheduledDateISO
+    }
     if (duration !== undefined) updateData.duration = duration || null
     if (round !== undefined) updateData.round = round || null
     if (interviewers !== undefined) updateData.interviewers = interviewers || null
@@ -79,7 +85,13 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes || null
     if (outcome !== undefined) updateData.outcome = outcome || null
     if (nextSteps !== undefined) updateData.nextSteps = nextSteps || null
-    if (nextStepsDueDate !== undefined) updateData.nextStepsDueDate = nextStepsDueDate || null
+    if (nextStepsDueDate !== undefined) {
+      // Convert datetime-local format to ISO string without timezone conversion
+      const nextStepsDueDateISO = nextStepsDueDate && nextStepsDueDate.includes('T') && !nextStepsDueDate.includes('Z')
+        ? `${nextStepsDueDate}:00.000Z`
+        : nextStepsDueDate
+      updateData.nextStepsDueDate = nextStepsDueDateISO || null
+    }
 
     if (isCompleted !== undefined) {
       updateData.isCompleted = isCompleted
