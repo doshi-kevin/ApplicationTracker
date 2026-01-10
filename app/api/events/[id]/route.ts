@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Convert datetime-local string to UTC Date object
+// datetime-local format: "2024-01-15T17:00:00"
+// This function creates a UTC date that represents the same local time
+function parseLocalDateTime(dateTimeString: string): Date {
+  // Parse the date string components
+  const date = new Date(dateTimeString)
+
+  // Get the timezone offset in minutes
+  const offsetMinutes = date.getTimezoneOffset()
+
+  // Adjust by adding the offset to counteract the automatic UTC conversion
+  // This makes the UTC time equal to what the user entered
+  const adjustedDate = new Date(date.getTime() - (offsetMinutes * 60 * 1000))
+
+  return adjustedDate
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -68,7 +85,7 @@ export async function PATCH(
     if (contactId !== undefined) updateData.contactId = contactId || null
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description || null
-    if (scheduledDate !== undefined) updateData.scheduledDate = scheduledDate
+    if (scheduledDate !== undefined) updateData.scheduledDate = parseLocalDateTime(scheduledDate)
     if (duration !== undefined) updateData.duration = duration || null
     if (round !== undefined) updateData.round = round || null
     if (interviewers !== undefined) updateData.interviewers = interviewers || null
@@ -79,7 +96,7 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes || null
     if (outcome !== undefined) updateData.outcome = outcome || null
     if (nextSteps !== undefined) updateData.nextSteps = nextSteps || null
-    if (nextStepsDueDate !== undefined) updateData.nextStepsDueDate = nextStepsDueDate || null
+    if (nextStepsDueDate !== undefined) updateData.nextStepsDueDate = nextStepsDueDate ? parseLocalDateTime(nextStepsDueDate) : null
 
     if (isCompleted !== undefined) {
       updateData.isCompleted = isCompleted
