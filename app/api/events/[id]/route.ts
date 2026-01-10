@@ -69,11 +69,8 @@ export async function PATCH(
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description || null
     if (scheduledDate !== undefined) {
-      // Convert datetime-local format to ISO string without timezone conversion
-      const scheduledDateISO = scheduledDate.includes('T') && !scheduledDate.includes('Z')
-        ? `${scheduledDate}:00.000Z`
-        : scheduledDate
-      updateData.scheduledDate = scheduledDateISO
+      const parsedDate = new Date(scheduledDate.replace('T', 'T') + (scheduledDate.includes('Z') ? '' : 'Z'))
+      updateData.scheduledDate = parsedDate
     }
     if (duration !== undefined) updateData.duration = duration || null
     if (round !== undefined) updateData.round = round || null
@@ -86,11 +83,12 @@ export async function PATCH(
     if (outcome !== undefined) updateData.outcome = outcome || null
     if (nextSteps !== undefined) updateData.nextSteps = nextSteps || null
     if (nextStepsDueDate !== undefined) {
-      // Convert datetime-local format to ISO string without timezone conversion
-      const nextStepsDueDateISO = nextStepsDueDate && nextStepsDueDate.includes('T') && !nextStepsDueDate.includes('Z')
-        ? `${nextStepsDueDate}:00.000Z`
-        : nextStepsDueDate
-      updateData.nextStepsDueDate = nextStepsDueDateISO || null
+      if (nextStepsDueDate) {
+        const parsedDate = new Date(nextStepsDueDate.replace('T', 'T') + (nextStepsDueDate.includes('Z') ? '' : 'Z'))
+        updateData.nextStepsDueDate = parsedDate
+      } else {
+        updateData.nextStepsDueDate = null
+      }
     }
 
     if (isCompleted !== undefined) {
