@@ -68,10 +68,7 @@ export async function PATCH(
     if (contactId !== undefined) updateData.contactId = contactId || null
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description || null
-    if (scheduledDate !== undefined) {
-      const parsedDate = new Date(scheduledDate.replace('T', 'T') + (scheduledDate.includes('Z') ? '' : 'Z'))
-      updateData.scheduledDate = parsedDate
-    }
+    if (scheduledDate !== undefined) updateData.scheduledDate = scheduledDate
     if (duration !== undefined) updateData.duration = duration || null
     if (round !== undefined) updateData.round = round || null
     if (interviewers !== undefined) updateData.interviewers = interviewers || null
@@ -82,14 +79,7 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes || null
     if (outcome !== undefined) updateData.outcome = outcome || null
     if (nextSteps !== undefined) updateData.nextSteps = nextSteps || null
-    if (nextStepsDueDate !== undefined) {
-      if (nextStepsDueDate) {
-        const parsedDate = new Date(nextStepsDueDate.replace('T', 'T') + (nextStepsDueDate.includes('Z') ? '' : 'Z'))
-        updateData.nextStepsDueDate = parsedDate
-      } else {
-        updateData.nextStepsDueDate = null
-      }
-    }
+    if (nextStepsDueDate !== undefined) updateData.nextStepsDueDate = nextStepsDueDate || null
 
     if (isCompleted !== undefined) {
       updateData.isCompleted = isCompleted

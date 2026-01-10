@@ -199,11 +199,18 @@ export default function EventsPage() {
       const url = editingEvent ? `/api/events/${editingEvent.id}` : '/api/events'
       const method = editingEvent ? 'PATCH' : 'POST'
 
+      // Convert datetime-local to ISO string, treating it as local time
+      // Add seconds to make it a complete datetime that Prisma accepts
+      const scheduledDateWithSeconds = formData.scheduledDate.includes(':00:00')
+        ? formData.scheduledDate
+        : `${formData.scheduledDate}:00`
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          scheduledDate: scheduledDateWithSeconds,
           applicationId: formData.applicationId || null,
           contactId: formData.contactId || null,
           duration: formData.duration ? parseInt(formData.duration) : null,

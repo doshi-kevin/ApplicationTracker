@@ -47,10 +47,6 @@ export async function POST(request: Request) {
       notes,
     } = body
 
-    // Parse datetime-local input (format: "2024-01-15T17:00")
-    // and create a Date object that preserves the local time
-    const parsedDate = new Date(scheduledDate.replace('T', 'T') + (scheduledDate.includes('Z') ? '' : 'Z'))
-
     const event = await prisma.event.create({
       data: {
         type: type || 'REMINDER',
@@ -58,7 +54,7 @@ export async function POST(request: Request) {
         contactId: contactId || null,
         title,
         description: description || null,
-        scheduledDate: parsedDate,
+        scheduledDate: scheduledDate,
         duration: duration || null,
         round: round || null,
         interviewers: interviewers || null,
