@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         contactId: contactId || null,
         title,
         description: description || null,
-        scheduledDate: new Date(scheduledDate),
+        scheduledDate: scheduledDate,
         duration: duration || null,
         round: round || null,
         interviewers: interviewers || null,
