@@ -12,7 +12,6 @@ import {
   Users,
   Calendar,
   Bell,
-  FileEdit,
   GraduationCap,
   Mail,
   BarChart3,
@@ -115,14 +114,6 @@ export default function CommandPalette({
       shortcut: 'G then R',
       icon: <Bell className="w-4 h-4" />,
       action: () => router.push('/reminders'),
-      category: 'navigation',
-    },
-    {
-      id: 'nav-resumes',
-      label: 'Go to Resumes',
-      shortcut: 'G then S',
-      icon: <FileEdit className="w-4 h-4" />,
-      action: () => router.push('/resumes'),
       category: 'navigation',
     },
     {
