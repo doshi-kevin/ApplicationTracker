@@ -34,7 +34,7 @@ interface Reminder {
 }
 
 type ViewMode = 'board' | 'list'
-type FilterType = 'all' | 'overdue' | 'today' | 'upcoming' | 'completed'
+type FilterType = 'all' | 'overdue' | 'today' | 'upcoming'
 
 export default function RemindersPage() {
   const [reminders, setReminders] = useState<Reminder[]>([])
@@ -206,19 +206,17 @@ export default function RemindersPage() {
   }, [reminders])
 
   const filteredReminders = useMemo(() => {
-    if (filterType === 'all') return reminders
+    if (filterType === 'all') return reminders.filter(r => !r.isCompleted)
     if (filterType === 'overdue') return categorizedReminders.overdue
     if (filterType === 'today') return categorizedReminders.today
     if (filterType === 'upcoming') return categorizedReminders.upcoming
-    if (filterType === 'completed') return categorizedReminders.completed
-    return reminders
+    return reminders.filter(r => !r.isCompleted)
   }, [reminders, categorizedReminders, filterType])
 
   const stats = {
     overdue: categorizedReminders.overdue.length,
     today: categorizedReminders.today.length,
     upcoming: categorizedReminders.upcoming.length,
-    completed: categorizedReminders.completed.length,
   }
 
   const ReminderCard = ({ reminder, showCategory = false }: { reminder: Reminder, showCategory?: boolean }) => {
@@ -392,7 +390,7 @@ export default function RemindersPage() {
                   Reminders & To-Dos
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">
-                  {stats.overdue + stats.today + stats.upcoming} active • {stats.completed} completed
+                  {stats.overdue + stats.today + stats.upcoming} active tasks
                 </p>
               </div>
             </div>
@@ -408,12 +406,11 @@ export default function RemindersPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {[
               { label: 'Overdue', count: stats.overdue, gradient: 'from-red-600 to-pink-600', icon: AlertCircle, filter: 'overdue' as FilterType },
               { label: 'Today', count: stats.today, gradient: 'from-amber-600 to-orange-600', icon: Zap, filter: 'today' as FilterType },
               { label: 'Upcoming', count: stats.upcoming, gradient: 'from-blue-600 to-cyan-600', icon: Clock, filter: 'upcoming' as FilterType },
-              { label: 'Completed', count: stats.completed, gradient: 'from-green-600 to-emerald-600', icon: CheckCircle2, filter: 'completed' as FilterType },
             ].map((stat) => {
               const Icon = stat.icon
               return (
@@ -452,8 +449,7 @@ export default function RemindersPage() {
             {filterType === 'all' ? 'All Reminders' :
              filterType === 'overdue' ? 'Overdue' :
              filterType === 'today' ? 'Due Today' :
-             filterType === 'upcoming' ? 'Upcoming' :
-             'Completed'}
+             'Upcoming'}
           </h2>
           <div className="flex gap-2">
             <button
@@ -479,12 +475,11 @@ export default function RemindersPage() {
 
         {/* Board View */}
         {viewMode === 'board' && filterType === 'all' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { title: 'Overdue', items: categorizedReminders.overdue, gradient: 'from-red-500/20 to-pink-500/20', icon: AlertCircle },
               { title: 'Today', items: categorizedReminders.today, gradient: 'from-amber-500/20 to-orange-500/20', icon: Zap },
               { title: 'Upcoming', items: categorizedReminders.upcoming, gradient: 'from-blue-500/20 to-cyan-500/20', icon: Clock },
-              { title: 'Completed', items: categorizedReminders.completed, gradient: 'from-green-500/20 to-emerald-500/20', icon: CheckCircle2 },
             ].map((column) => {
               const Icon = column.icon
               return (
